@@ -38,6 +38,20 @@ export const getUsers = async (token) => {
   }
 }
 
+export const getBanners = async (token) => {
+  try {
+    const res = await axios.get(`${baseUrl}/BRL/banner?current=1&pageSize=20&sorter=%7B%7D&filter=%7B%7D&page=1&lang=zh`, {
+      headers: {
+        Authorization: 'bearer ' + token
+      }
+    })
+
+    return res.data.data.data
+  } catch (error) {
+    console.error('[Get banners]', error)
+  }
+}
+
 export const logout = async (token) => {
   try {
     await axios({

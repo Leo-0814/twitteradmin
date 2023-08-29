@@ -35,7 +35,7 @@ const LeftContainer = ({post, user, banner}) => {
         </Link>
         <Link to='/banners' className="leftContainer-list-item">
           <img src={banner? banner: baseBanner} alt="banner" className="leftContainer-list-icon" />
-          <div className={clsx('leftContainer-list-text', { active: banner })}>輪播圖</div>
+          <div className={clsx('leftContainer-list-text', { active: banner })}>輪播圖設置</div>
         </Link>
 
         <div className="leftContainer-list-item leftContainer-list-logOut" onClick={handleClick}>

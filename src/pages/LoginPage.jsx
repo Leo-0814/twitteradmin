@@ -4,7 +4,7 @@ import { AuthContainer, AuthTitle } from '../component/common/auth.styled'
 import Button from '../component/Button'
 import { useEffect, useState } from 'react'
 import Swal from 'sweetalert2'
-import { Login, getUsers } from '../api/admin'
+import { login, getUsers } from '../api/admin'
 import LogoIcon from '../component/LogoIcon'
 
 
@@ -21,7 +21,7 @@ const LoginPage = () => {
     }
 
     try {
-      const token = await Login({account, password, gcode})
+      const token = await login({account, password, gcode})
       if (token) {
         localStorage.setItem('token', token)
         Swal.fire({

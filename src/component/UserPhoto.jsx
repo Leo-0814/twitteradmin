@@ -6,9 +6,9 @@ const StyledUserPhoto = styled.img`
   height: 50px
 `
 
-const UserPhoto = () => {
+const UserPhoto = ({className}) => {
   return (
-    <StyledUserPhoto src={userPhoto} alt="userPhoto"></StyledUserPhoto>
+    <StyledUserPhoto src={userPhoto} alt="userPhoto" className={className}></StyledUserPhoto>
   )
 }
 

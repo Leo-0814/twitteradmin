@@ -1,16 +1,20 @@
 import { styled } from 'styled-components'
 import { timeDifferent } from './common/time'
 import UserPhoto from './UserPhoto'
-import cancel from '../images/_base/cancle.png'
+import PopupModal from './PopupModal'
+import { useState } from 'react'
+import clsx from 'clsx'
 
 const StyledPostCard = styled.div`
   width: 100%;
   padding: 12px 5px 12px 24px;
   border-bottom: 1px solid rgba(230, 236, 240, 1);
   display: flex;
-  align-items: center;
   position: relative;
 
+  .post-card-photo {
+    margin-top: 5px
+  }
   .post-card-data {
     margin-left: 5px;
     margin-top: 5px;
@@ -54,6 +58,7 @@ const StyledPostCard = styled.div`
       font-size: 16px;
       line-height: 26px;
       margin-top: 5px;
+      padding-right: 48px;
     }
   }
   .post-card-cancel {
@@ -67,13 +72,13 @@ const StyledPostCard = styled.div`
 `
 
 
-const PostCard = ({ postData }) => {
+const PostCard = ({ postData, onClickConfirmToDelete }) => {
 
   const timeDif = timeDifferent(postData.getTime)
 
   return (
     <StyledPostCard>
-      <UserPhoto></UserPhoto>
+      <UserPhoto className='post-card-photo'></UserPhoto>
       <div className='post-card-data' >
         <div className='card-data-header' >
           <div className='data-header-username'>{postData.real_name}</div>
@@ -83,7 +88,7 @@ const PostCard = ({ postData }) => {
         </div>
         <div className='card-data-content' >{postData.content}</div>
       </div>
-      <img src={cancel} alt="" className='post-card-cancel'/>
+      <PopupModal className='post-card-cancel' postData= {postData} onClickConfirmToDelete={(postId) => onClickConfirmToDelete?.(postId)}></PopupModal>
     </StyledPostCard>
   )
 }

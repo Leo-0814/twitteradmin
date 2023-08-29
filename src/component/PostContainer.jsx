@@ -1,6 +1,6 @@
 import PostCard from "./PostCard"
 
-const PostContainer = ({postList}) => {
+const PostContainer = ({postList, onClickConfirmToDelete}) => {
   return (
     <div className="postContainer">
       <div className="postContainer-header">
@@ -9,7 +9,7 @@ const PostContainer = ({postList}) => {
       <div className='postContainer-post'>
         {postList.map(post => {
           return (
-            <PostCard key={post.id} postData={post}></PostCard>
+            <PostCard key={post.id} postData={post} onClickConfirmToDelete={(postId) => onClickConfirmToDelete?.(postId)}></PostCard>
           )
         })}
       </div>

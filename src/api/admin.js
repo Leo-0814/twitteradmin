@@ -3,7 +3,7 @@ import Swal from "sweetalert2"
 
 const baseUrl = 'https://adminapi.ball188.cc'
 
-export const Login = async({account, password, gcode}) => {
+export const login = async({account, password, gcode}) => {
   try {
     const res = await axios.post(`${baseUrl}/admin/login`, {account, password, gcode})
 
@@ -26,7 +26,7 @@ export const Login = async({account, password, gcode}) => {
 
 export const getUsers = async (token) => {
   try {
-    const res = await axios.get(`${baseUrl}/BRL/user/list?current=1&pageSize=300&slow_query_status=0&sorter=%7B%7D&filter=%7B%7D&page_size=300&page=1&lang=zh`, {
+    const res = await axios.get(`${baseUrl}/BRL/user/list?current=1&pageSize=11&slow_query_status=0&sorter=%7B%7D&filter=%7B%7D&page_size=11&page=1&lang=zh`, {
       headers: {
         Authorization: 'bearer ' + token
       }

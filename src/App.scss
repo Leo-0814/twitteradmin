@@ -1,0 +1,40 @@
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  font-family: 'Lato', 'Noto Sans TC', sans-serif;
+  height: 100%;
+  overflow: hidden;
+}
+
+input::placeholder {
+  color: rgba(181, 181, 190, 1)
+}
+
+textarea {
+  border: none;
+  resize: none;
+  outline: none;
+
+  &::placeholder {
+    color: rgba(108, 117, 125, 1)
+  }
+}
+
+a:visited {
+  color: rgba(0, 98, 255, 1);
+}
+
+// Login Page
+.authInput {
+  width: 356px;
+}
+
+.authBtn {
+  margin-top: 40px;
+  font-size: 20px;
+  width: 356px;
+  height: 46px;
+}

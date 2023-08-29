@@ -1,38 +1,45 @@
-.App {
-  text-align: center;
+* {
+  box-sizing: border-box;
 }
 
-.App-logo {
-  height: 40vmin;
-  pointer-events: none;
+html,
+body {
+  font-family: "Lato", "Noto Sans TC", sans-serif;
+  height: 100%;
+  overflow: hidden;
 }
 
-@media (prefers-reduced-motion: no-preference) {
-  .App-logo {
-    animation: App-logo-spin infinite 20s linear;
-  }
+input::-moz-placeholder {
+  color: rgb(181, 181, 190);
 }
 
-.App-header {
-  background-color: #282c34;
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  font-size: calc(10px + 2vmin);
-  color: white;
+input::placeholder {
+  color: rgb(181, 181, 190);
 }
 
-.App-link {
-  color: #61dafb;
+textarea {
+  border: none;
+  resize: none;
+  outline: none;
+}
+textarea::-moz-placeholder {
+  color: rgb(108, 117, 125);
+}
+textarea::placeholder {
+  color: rgb(108, 117, 125);
 }
 
-@keyframes App-logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
+a:visited {
+  color: rgb(0, 98, 255);
 }
+
+.authInput {
+  width: 356px;
+}
+
+.authBtn {
+  margin-top: 40px;
+  font-size: 20px;
+  width: 356px;
+  height: 46px;
+}/*# sourceMappingURL=App.css.map */

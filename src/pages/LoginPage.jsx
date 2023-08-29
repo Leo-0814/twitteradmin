@@ -1,28 +1,28 @@
-import { Link, useNavigate } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 import AuthInput from '../component/AuthInput'
-import logo from '../images/logo.png'
-import { AuthContainer, AuthLinkContainer, AuthLinkSpan, AuthLinkText, AuthTitle } from '../component/common/auth.styled'
-import { LogoIcon } from '../component/common/logo.styled'
+import { AuthContainer, AuthTitle } from '../component/common/auth.styled'
 import Button from '../component/Button'
 import { useEffect, useState } from 'react'
-import { login } from '../api/auth'
 import Swal from 'sweetalert2'
-import { getInfo } from '../api/info'
+import { Login, getUsers } from '../api/admin'
+import LogoIcon from '../component/LogoIcon'
 
 
 const LoginPage = () => {
   const [account, setAccount] = useState('')
   const [password, setPassword] = useState('')
+  const gcode = 1478963
   const navigate = useNavigate()
 
+  // 點擊登入
   const handleClick = async () => {
     if (account.length === 0 || password.length === 0) {
       return
     }
 
     try {
-      const { success, token } = await login({account, password})
-      if (success) {
+      const token = await Login({account, password, gcode})
+      if (token) {
         localStorage.setItem('token', token)
         Swal.fire({
           icon: 'success',
@@ -32,7 +32,7 @@ const LoginPage = () => {
           timer: 1000,
           position: 'top'
         })
-        navigate('/promotion')
+        navigate('/users')
         return
       }
     } catch (error) {
@@ -40,33 +40,30 @@ const LoginPage = () => {
     }
   }
 
+  // 判斷token是否生效
   useEffect(() => {
-    const getInfoAsync = async () => {
-      const adminToken = localStorage.getItem('adminToken')
-      if (!adminToken) {
-        navigate('/adminlogin')
-        return
-      }
-      
+    const getUsersAsync = async () => {
       const token = localStorage.getItem('token')
       if (!token) {
         return
       }
 
-      const res = await getInfo(token)
-      if (res) {
-        navigate('/promotion')
-      } else {
-        localStorage.removeItem('token')
+      try {
+        const res = await getUsers(token)
+        if (res) {
+          navigate('/users')
+        }
+      } catch (error) {
+        console.log(error)
       }
     }
-    getInfoAsync()
+    getUsersAsync()
   },[navigate])
 
   return (
     <AuthContainer>
-      <LogoIcon src={logo} alt="logo"/>
-      <AuthTitle>登入 Alphitter</AuthTitle>
+      <LogoIcon></LogoIcon>
+      <AuthTitle>後台登入</AuthTitle>
         <AuthInput 
           value={account} name='account' placeholder='請輸入帳號' label='帳號' className='authInput' onChange={(accountInputValue) => setAccount(accountInputValue)}
         />
@@ -75,19 +72,6 @@ const LoginPage = () => {
         />
 
       <Button className='authBtn' onClick={handleClick}>登入</Button>
-
-      <AuthLinkContainer className='login-linkContainer'>
-        <Link to='/signup'>
-          <AuthLinkText >註冊</AuthLinkText>
-        </Link>
-        <AuthLinkSpan >． </AuthLinkSpan>
-        <Link to='/admin'>
-          <AuthLinkText onClick={() => {
-            localStorage.removeItem('adminToken')
-            navigate('adminlogin')  
-          }}>後台登出</AuthLinkText>
-        </Link>
-      </AuthLinkContainer>
     </AuthContainer>
   )
 }

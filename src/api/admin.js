@@ -37,3 +37,17 @@ export const getUsers = async (token) => {
     console.error('[Get users]', error)
   }
 }
+
+export const logout = async (token) => {
+  try {
+    await axios({
+      method: 'post',
+      headers: {
+        Authorization: 'bearer ' + token
+      },
+      url: `${baseUrl}/admin/logout`
+    })
+  } catch (error) {
+    console.error('[Logout error]', error)
+  }
+}

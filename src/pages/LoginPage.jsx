@@ -32,7 +32,7 @@ const LoginPage = () => {
           timer: 1000,
           position: 'top'
         })
-        navigate('/users')
+        navigate('/posts')
         return
       }
     } catch (error) {
@@ -51,7 +51,7 @@ const LoginPage = () => {
       try {
         const res = await getUsers(token)
         if (res) {
-          navigate('/users')
+          navigate('/posts')
         }
       } catch (error) {
         console.log(error)

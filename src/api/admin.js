@@ -52,6 +52,34 @@ export const getBanners = async (token) => {
   }
 }
 
+export const disableBanner = async (token, bannerId) => {
+  try {
+    const res = await axios.get(`${baseUrl}/BRL/banner/${bannerId}/disable`, {
+      headers: {
+        Authorization: 'bearer ' + token
+      }
+    })
+
+    return res.data.data
+  } catch (error) {
+    console.error('[Disable banner]', error)
+  }
+}
+
+export const enableBanner = async (token, bannerId) => {
+  try {
+    const res = await axios.get(`${baseUrl}/BRL/banner/${bannerId}/enable`, {
+      headers: {
+        Authorization: 'bearer ' + token
+      }
+    })
+
+    return res.data.data
+  } catch (error) {
+    console.error('[Disable banner]', error)
+  }
+}
+
 export const logout = async (token) => {
   try {
     await axios({

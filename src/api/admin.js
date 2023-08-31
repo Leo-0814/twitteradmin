@@ -54,7 +54,9 @@ export const getBanners = async (token) => {
 
 export const disableBanner = async (token, bannerId) => {
   try {
-    const res = await axios.get(`${baseUrl}/BRL/banner/${bannerId}/disable`, {
+    const res = await axios({
+      method: 'put',
+      url: `${baseUrl}/BRL/banner/${bannerId}/disable`,
       headers: {
         Authorization: 'bearer ' + token
       }
@@ -68,10 +70,61 @@ export const disableBanner = async (token, bannerId) => {
 
 export const enableBanner = async (token, bannerId) => {
   try {
-    const res = await axios.get(`${baseUrl}/BRL/banner/${bannerId}/enable`, {
+    const res = await axios({
+      method: 'put',
+      url: `${baseUrl}/BRL/banner/${bannerId}/enable`,
       headers: {
         Authorization: 'bearer ' + token
       }
+    })
+
+    return res.data.data
+  } catch (error) {
+    console.error('[Disable banner]', error)
+  }
+}
+
+export const deleteBanner = async (token, bannerId) => {
+  try {
+    const res = await axios({
+      method: 'delete',
+      url: `${baseUrl}/BRL/banner/${bannerId}`,
+      headers: {
+        Authorization: 'bearer ' + token
+      }
+    })
+
+    return res.data.data
+  } catch (error) {
+    console.error('[Disable banner]', error)
+  }
+}
+
+export const editBanner = async (token, bannerId, ...prop) => {
+  try {
+    const res = await axios({
+      method: 'put',
+      url: `${baseUrl}/BRL/banner/${bannerId}`,
+      headers: {
+        Authorization: 'bearer ' + token
+      },
+      data: {...prop}
+    })
+
+    return res.data.data
+  } catch (error) {
+    console.error('[Disable banner]', error)
+  }
+}
+
+export const uploadImg = async (token) => {
+  try {
+    const res = await axios({
+      method: 'post',
+      url: 'https://image.ball188.cc/api/image/upload',
+      headers: {
+        Authorization: 'bearer ' + token
+      },
     })
 
     return res.data.data

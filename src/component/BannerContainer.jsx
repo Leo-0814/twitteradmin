@@ -1,6 +1,6 @@
-import { Badge, Button, Modal, Space, Table } from "antd"
+import { Badge, Button, Space, Table } from "antd"
 
-const BannerContainer = ({ bannerList, showModal, openModal }) => {
+const BannerContainer = ({ bannerList, showStatusModal, showDeleteModal,showCreateModal, showEditModal }) => {
   const columns = [
   {
     title: '排序',
@@ -67,7 +67,7 @@ const BannerContainer = ({ bannerList, showModal, openModal }) => {
     title: '超連結',
     dataIndex: 'url',
     key: 'url',
-    render: (text) => <a>{text}</a>,
+    render: (text) => <a href={text} target="_blank" rel="noreferrer">{text}</a>,
     width: 200,
   },
   {
@@ -90,35 +90,11 @@ const BannerContainer = ({ bannerList, showModal, openModal }) => {
     render: (status, record) => (
       <Space size="middle">
         {status === 0? 
-          <Button type="link" className="banner-table-btn" onClick={() => showModal?.(status, record.id)}>啟用</Button>: 
-          <Button type="link" danger className="banner-table-btn" onClick={() => showModal?.(status, record.id)}>禁用</Button>
+          <Button type="link" className="banner-table-btn" onClick={() => showStatusModal?.(status, record.id)}>啟用</Button>: 
+          <Button type="link" danger className="banner-table-btn" onClick={() => showStatusModal?.(status, record.id)}>禁用</Button>
         }
-        <Button type="link" className="banner-table-btn" onClick={showModal}>編輯</Button>
-        <Button type="link" danger className="banner-table-btn" onClick={showModal}>刪除</Button>
-        {status === 0?
-          <Modal
-            title="啟用"
-            open={openModal}
-            onOk={() => onOk?.()}
-            confirmLoading={confirmLoading}
-            onCancel={() => setOpenStatus0Modal(false)}
-            okText="確定"
-            cancelText="取消"
-          >
-            <p>是否啟用輪播圖?</p>
-          </Modal>:
-          <Modal
-            title="禁用"
-            open={openModal}
-            onOk={handleOk}
-            confirmLoading={confirmLoading}
-            onCancel={() => setOpenStatus1Modal(false)}
-            okText="確定"
-            cancelText="取消"
-          >
-            <p>是否禁用輪播圖?</p>
-          </Modal>
-        }
+        <Button type="link" className="banner-table-btn" onClick={() => showEditModal?.(record.id)}>編輯</Button>
+        <Button type="link" danger className="banner-table-btn" onClick={() => showDeleteModal?.(record.id)}>刪除</Button>
       </Space>
     ),
     width: 180,
@@ -134,6 +110,9 @@ const BannerContainer = ({ bannerList, showModal, openModal }) => {
 
       </div> */}
       <div className='bannerContainer-banner'>
+        <Button type='primary' onClick={() => showCreateModal?.()} className="bannerContainer-banner-create">
+          新建
+        </Button>
         <Table 
           className="bannerContainer-banner-table"
           columns={columns} 

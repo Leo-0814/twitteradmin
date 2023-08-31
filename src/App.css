@@ -180,6 +180,7 @@ a:visited {
   padding: 16px;
   display: flex;
   flex-wrap: wrap;
+  justify-content: end;
 }
 .mainContainer .bannerContainer .bannerContainer-banner::-webkit-scrollbar-track {
   background-color: rgb(240, 240, 240);
@@ -191,13 +192,27 @@ a:visited {
   background-color: rgb(193, 193, 193);
   border-radius: 4px;
 }
+.mainContainer .bannerContainer .bannerContainer-banner .bannerContainer-banner-create {
+  margin-bottom: 16px;
+}
 .mainContainer .bannerContainer .bannerContainer-banner .bannerContainer-banner-table {
   width: 100%;
 }
 .mainContainer .bannerContainer .bannerContainer-banner .bannerContainer-banner-table .banner-table-img {
-  width: 200px;
-  height: auto;
+  width: auto;
+  max-width: 230px;
+  height: 80px;
 }
 .mainContainer .bannerContainer .bannerContainer-banner .bannerContainer-banner-table .banner-table-btn {
   padding: 0;
+}
+
+.ant-modal-body .ant-form-item {
+  position: relative;
+}
+.ant-modal-body .ant-form-item .ant-form-item-row .ant-form-item-extra {
+  position: absolute;
+  top: -30px;
+  left: 100px;
+  white-space: nowrap;
 }/*# sourceMappingURL=App.css.map */

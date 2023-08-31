@@ -3,8 +3,8 @@ import BannerContainer from "../component/BannerContainer"
 import LeftContainer from "../component/LeftContainer"
 import bannerActive from '../images/_base/bannerActive.png'
 import { useNavigate } from "react-router-dom"
-import { deleteBanner, disableBanner, editBanner, enableBanner, getBanners, uploadImg } from "../api/admin"
-import { Button, Form, Input,  InputNumber, Select, Modal, DatePicker, Upload, message, Collapse } from "antd"
+import { deleteBanner, disableBanner, editBanner, enableBanner, getBanners } from "../api/admin"
+import { Button, Form, Input,  InputNumber, Select, Modal, DatePicker, Upload, message } from "antd"
 import { LoadingOutlined, PlusOutlined } from '@ant-design/icons'
 import dayjs from "dayjs"
 
@@ -19,7 +19,6 @@ const BannerPage = () => {
   const [ openCreateModal, setOpenCreateModal ] = useState(false);
   const [ openEditModal, setOpenEditModal ] = useState(false);
   const [ confirmLoading, setConfirmLoading ] = useState(false);
-
   const { Option } = Select;
   const formItemLayout = {
     labelCol: {
@@ -47,15 +46,16 @@ const BannerPage = () => {
   };
 
   const normFile = (e) => {
-    console.log('Upload event:', e);
     if (Array.isArray(e)) {
       return e;
     }
     return e?.fileList;
   };
 
-  const [loading, setLoading] = useState(false);
-  const [imageUrl, setImageUrl] = useState();
+  const [ loading, setLoading ] = useState(false);
+  const [ imageUrl, setImageUrl ] = useState();
+  const [ base64Url, setBase64Url ] = useState()
+  const [ values, setValues ] = useState();
   const uploadButton = (
     <div>
       {loading ? <LoadingOutlined /> : <PlusOutlined />}
@@ -90,7 +90,7 @@ const BannerPage = () => {
   };
 
   // 上傳圖片
-  const handleChange = async (info) => {
+  const handleChange = (info) => {
     if (info.file.status === 'uploading') {
       setLoading(true);
       
@@ -108,7 +108,6 @@ const BannerPage = () => {
       getBase64(info.file.originFileObj, (url) => {
         setLoading(false);
         setImageUrl(url);
-        console.log(url)
       });
     }
   };
@@ -146,6 +145,7 @@ const BannerPage = () => {
     setOpenEditModal(true)
     setBannerControlId(bannerId)
     const targetBanner = bannerList.filter(banner => banner.id === bannerId)
+    // console.log(targetBanner)
     editForm.setFieldsValue({
       sorting: targetBanner[0].sorting,
       name: targetBanner[0].name,
@@ -153,6 +153,7 @@ const BannerPage = () => {
       position: targetBanner[0].position === 1? '前台首頁': targetBanner[0].position,
       start_time: dayjs(targetBanner[0].start_time),
       end_time: dayjs(targetBanner[0].end_time),
+      img: [targetBanner[0].img],
     })
     setImageUrl(targetBanner[0].img)
   }
@@ -220,24 +221,39 @@ const BannerPage = () => {
   }
 
   // 點擊編輯確認
-  const handleEditModalOk = async () => {
-    setConfirmLoading(true);
+  const handleEditModalOk = async (values) => {
     const token = localStorage.getItem('token')
-    let data = editForm.getFieldsValue()
-    console.log(data)
-
-    // try {
-    //   await editBanner(token, bannerControlId, )
-    // } catch (error) {
-    //   console.log(error)
+    setConfirmLoading(true);
+    console.log(values)
+    values.img = values.img[values.img.length - 1]
+    if (typeof values.img === 'object') {
+      getBase64(values.img.originFileObj, (url) => {
+        setConfirmLoading(false);
+        setBase64Url(url)
+        console.log(base64Url)
+      });
+    }
+    if (base64Url) {
+      console.log(123)
+    }
+    // console.log(base64Url)
+    // if (base64Url) {
+    //   try {
+    //     const res = await editBanner({token, bannerControlId, ...values})
+  
+    //     if (res === 1) {  
+    //       const res = await getBanners(token)
+    //       setBannerList(res)
+    //     }
+    //   } catch (error) {
+    //     console.log(error)
+    //   }
+    //   setTimeout(async () => {
+    //     setOpenEditModal(false);
+    //     setConfirmLoading(false);
+    //     setBase64Url('')
+    //   }, 500);
     // }
-
-    // setTimeout(async () => {
-    //   setOpenEditModal(false);
-    //   setConfirmLoading(false);
-    //   const res = await getBanners(token)
-    //   setBannerList(res)
-    // }, 500);
   }
 
   // 初始拿輪播列表
@@ -312,11 +328,11 @@ const BannerPage = () => {
           onCancel={handleCancelCreateModal}
           footer={
             [
-            <Button form="bannerForm" onClick={handleCancelCreateModal}>
+            <Button form="createForm" onClick={handleCancelCreateModal}>
                 取消
             </Button>
             ,
-            <Button form="bannerForm" type='primary' htmlType="submit" onClick={handleCreateModalOk}>
+            <Button form="createForm" type='primary' htmlType="submit">
                 確認
             </Button>
             ]
@@ -327,9 +343,9 @@ const BannerPage = () => {
           <Form
             {...formItemLayout}
             form={createForm}
-            id="bannerForm"
-            name="createBanner"
-            onFinish={onFinish}
+            id="createForm"
+            name="createForm"
+            onFinish={handleCreateModalOk}
             layout="vertical"
             style={{
               maxWidth: 800,
@@ -476,11 +492,11 @@ const BannerPage = () => {
           onCancel={() => setOpenEditModal(false)}
           footer={
             [
-            <Button form="bannerForm" onClick={() => setOpenEditModal(false)}>
+            <Button form="editForm" onClick={() => setOpenEditModal(false)}>
                 取消
             </Button>
             ,
-            <Button form="bannerForm" type='primary' htmlType="submit" onClick={handleEditModalOk}>
+            <Button form="editForm" type='primary' htmlType="submit">
                 確認
             </Button>
             ]
@@ -491,9 +507,9 @@ const BannerPage = () => {
           <Form
             {...formItemLayout}
             form={editForm}
-            id="bannerForm"
-            name="editBanner"
-            onFinish={onFinish}
+            id="editForm"
+            name="editForm"
+            onFinish={handleEditModalOk}
             layout="vertical"
             style={{
               maxWidth: 800,

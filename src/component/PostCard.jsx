@@ -2,8 +2,6 @@ import { styled } from 'styled-components'
 import { timeDifferent } from './common/time'
 import UserPhoto from './UserPhoto'
 import PopupModal from './PopupModal'
-import { useState } from 'react'
-import clsx from 'clsx'
 
 const StyledPostCard = styled.div`
   width: 100%;

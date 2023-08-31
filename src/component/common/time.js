@@ -16,3 +16,28 @@ export const timeDifferent = (lastTime) => {
     return `${day}天前`
   } 
 }
+
+export const tranTime = (time) => {
+  let mouthStr = ( time.$M + 1 ).toString()
+  let dayStr = time.$D.toString()
+  let hourStr = time.$H.toString()
+  let minStr = time.$m.toString()
+  let secStr = time.$s.toString()
+  if (mouthStr.length === 1) {
+    mouthStr = '0' + mouthStr
+  }
+  if (dayStr.length === 1) {
+    dayStr = '0' + dayStr
+  }
+  if (hourStr.length === 1) {
+    hourStr = '0' + hourStr
+  }
+  if (minStr.length === 1) {
+    minStr = '0' + minStr
+  }
+  if (secStr.length === 1) {
+    secStr = '0' + secStr
+  }
+  
+  return( `${time.$y}-${mouthStr}-${dayStr} ${hourStr}:${minStr}:${secStr}`)
+}

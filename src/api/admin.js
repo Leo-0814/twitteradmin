@@ -1,5 +1,6 @@
 import axios from "axios"
 import Swal from "sweetalert2"
+import { tranTime } from "../component/common/time"
 
 const baseUrl = 'https://adminapi.ball188.cc'
 
@@ -80,7 +81,7 @@ export const enableBanner = async (token, bannerId) => {
 
     return res.data.data
   } catch (error) {
-    console.error('[Disable banner]', error)
+    console.error('[Enable banner]', error)
   }
 }
 
@@ -96,24 +97,31 @@ export const deleteBanner = async (token, bannerId) => {
 
     return res.data.data
   } catch (error) {
-    console.error('[Disable banner]', error)
+    console.error('[Delete banner]', error)
   }
 }
 
-export const editBanner = async (token, bannerId, ...prop) => {
+export const editBanner = async ({token, bannerControlId, ...prop}) => {
+  prop.position = '前台首頁'? 1: 2
+  prop.end_time = tranTime(prop.end_time)
+  prop.start_time = tranTime(prop.start_time)
+  console.log(prop)
   try {
     const res = await axios({
       method: 'put',
-      url: `${baseUrl}/BRL/banner/${bannerId}`,
+      url: `${baseUrl}/BRL/banner/${bannerControlId}`,
       headers: {
         Authorization: 'bearer ' + token
       },
-      data: {...prop}
+      data: {
+        id: bannerControlId,
+        ...prop,
+      }
     })
 
     return res.data.data
   } catch (error) {
-    console.error('[Disable banner]', error)
+    console.error('[Edit banner]', error)
   }
 }
 

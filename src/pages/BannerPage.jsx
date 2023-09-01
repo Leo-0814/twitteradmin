@@ -3,7 +3,7 @@ import BannerContainer from "../component/BannerContainer"
 import LeftContainer from "../component/LeftContainer"
 import bannerActive from '../images/_base/bannerActive.png'
 import { useNavigate } from "react-router-dom"
-import { deleteBanner, disableBanner, editBanner, enableBanner, getBanners } from "../api/admin"
+import { deleteBanner, disableBanner, editBanner, enableBanner, getBanners, uploadImg } from "../api/admin"
 import { Button, Form, Input,  InputNumber, Select, Modal, DatePicker, Upload, message } from "antd"
 import { LoadingOutlined, PlusOutlined } from '@ant-design/icons'
 import dayjs from "dayjs"
@@ -40,10 +40,6 @@ const BannerPage = () => {
   };
   const [ createForm ] = Form.useForm()
   const [ editForm ] = Form.useForm()
-  
-  const onFinish = (values) => {
-    console.log('Received values of form: ', values);
-  };
 
   const normFile = (e) => {
     if (Array.isArray(e)) {
@@ -52,44 +48,22 @@ const BannerPage = () => {
     return e?.fileList;
   };
 
-  const [ loading, setLoading ] = useState(false);
+  const [ loading, setLoading ] = useState(false)
   const [ imageUrl, setImageUrl ] = useState();
-  const [ base64Url, setBase64Url ] = useState()
-  const [ values, setValues ] = useState();
-  const uploadButton = (
-    <div>
-      {loading ? <LoadingOutlined /> : <PlusOutlined />}
-      <div
-        style={{
-          marginTop: 8,
-        }}
-      >
-        Upload
-      </div>
-    </div>
-  );
 
-  // 轉換img
-  const getBase64 = (img, callback) => {
-    const reader = new FileReader();
-    reader.addEventListener('load', () => callback(reader.result));
-    reader.readAsDataURL(img);
+  const [fileList, setFileList] = useState([
+    {
+      uid: '-1',
+      name: 'image.png',
+      status: 'done',
+      url: 'https://zos.alipayobjects.com/rmsportal/jkjgkEfvpUPVyRjUImniVslZfWPnJuuZ.png',
+    },
+  ]);
+  const onChange = ({ fileList: newFileList }) => {
+    setFileList(newFileList);
   };
 
-  // 判斷副檔名、檔案<2MB
-  const beforeUpload = (file) => {
-    const isJpgOrPng = file.type === 'image/jpeg' || file.type === 'image/png';
-    if (!isJpgOrPng) {
-      message.error('You can only upload JPG/PNG file!');
-    }
-    const isLt2M = file.size / 1024 / 1024 < 2;
-    if (!isLt2M) {
-      message.error('Image must smaller than 2MB!');
-    }
-    return isJpgOrPng && isLt2M;
-  };
-
-  // 上傳圖片
+    // 上傳圖片
   const handleChange = (info) => {
     if (info.file.status === 'uploading') {
       setLoading(true);
@@ -107,9 +81,75 @@ const BannerPage = () => {
       // Get this url from response in real world.
       getBase64(info.file.originFileObj, (url) => {
         setLoading(false);
-        setImageUrl(url);
+        
+        console.log(imageUrl)
+        let a = getBase64Url(url)
+        console.log(a)
+        setImageUrl(a);
+      });
+      
+    }
+  };
+  
+
+  const getBase64Url = (pic) => {
+    const blob = base64ImgToFile(pic)
+    const blobUrl = window.URL.createObjectURL(blob)
+    return blobUrl
+  }
+
+  const base64ImgToFile = (dataurl, filename = 'file') => {
+    const arr = dataurl.split(',')
+    const mime = arr[0].match(/:(.*?);/)[1]
+    const suffix = mime.split('/')[1]
+    const bstr = atob(arr[1])
+    let n = bstr.length
+    const u8arr = new Uint8Array(n)
+    while (n--) {
+      u8arr[n] = bstr.charCodeAt(n)
+    }
+    return new File([u8arr], `${filename}.${suffix}`, {
+      type: mime
+    })
+  }
+
+  // 轉換img
+  const getBase64 = (img, callback) => {
+    const reader = new FileReader();
+    // console.log(reader)
+    reader.addEventListener('load', () => callback(reader.result));
+    reader.readAsDataURL(img);
+  };
+
+  // 點擊預覽圖片
+  const onPreview = async (file) => {
+    let src = file.url;
+    if (!src) {
+      src = await new Promise((resolve) => {
+        const reader = new FileReader();
+        reader.readAsDataURL(file.originFileObj);
+        reader.onload = () => resolve(reader.result);
+        
       });
     }
+    console.log(src)
+    const image = new Image();
+    image.src = src;
+    const imgWindow = window.open(src);
+    imgWindow?.document.write(image.outerHTML);
+  };
+
+  // 判斷副檔名、檔案<2MB
+  const beforeUpload = (file) => {
+    const isJpgOrPng = file.type === 'image/jpeg' || file.type === 'image/png';
+    if (!isJpgOrPng) {
+      message.error('You can only upload JPG/PNG file!');
+    }
+    const isLt2M = file.size / 1024 / 1024 < 2;
+    if (!isLt2M) {
+      message.error('Image must smaller than 2MB!');
+    }
+    return isJpgOrPng && isLt2M;
   };
 
   // 關閉新建Modal重置內容
@@ -145,7 +185,7 @@ const BannerPage = () => {
     setOpenEditModal(true)
     setBannerControlId(bannerId)
     const targetBanner = bannerList.filter(banner => banner.id === bannerId)
-    // console.log(targetBanner)
+    console.log(targetBanner)
     editForm.setFieldsValue({
       sorting: targetBanner[0].sorting,
       name: targetBanner[0].name,
@@ -224,36 +264,21 @@ const BannerPage = () => {
   const handleEditModalOk = async (values) => {
     const token = localStorage.getItem('token')
     setConfirmLoading(true);
-    console.log(values)
-    values.img = values.img[values.img.length - 1]
-    if (typeof values.img === 'object') {
-      getBase64(values.img.originFileObj, (url) => {
-        setConfirmLoading(false);
-        setBase64Url(url)
-        console.log(base64Url)
-      });
+    values.img = imageUrl
+    try {
+      const res = await editBanner({token, bannerControlId, ...values})
+
+      if (res === 1) {  
+        const res = await getBanners(token)
+        setBannerList(res)
+      }
+    } catch (error) {
+      console.log(error)
     }
-    if (base64Url) {
-      console.log(123)
-    }
-    // console.log(base64Url)
-    // if (base64Url) {
-    //   try {
-    //     const res = await editBanner({token, bannerControlId, ...values})
-  
-    //     if (res === 1) {  
-    //       const res = await getBanners(token)
-    //       setBannerList(res)
-    //     }
-    //   } catch (error) {
-    //     console.log(error)
-    //   }
-    //   setTimeout(async () => {
-    //     setOpenEditModal(false);
-    //     setConfirmLoading(false);
-    //     setBase64Url('')
-    //   }, 500);
-    // }
+    setTimeout(async () => {
+      setOpenEditModal(false);
+      setConfirmLoading(false);
+    }, 500);
   }
 
   // 初始拿輪播列表
@@ -420,7 +445,7 @@ const BannerPage = () => {
                 },
               ]}
             >
-              <Upload
+              {/* <Upload
                 name="img"
                 listType="picture-card"
                 className="avatar-uploader"
@@ -443,7 +468,7 @@ const BannerPage = () => {
                 ) : (
                   uploadButton
                 )}
-              </Upload>
+              </Upload> */}
             </Form.Item>
 
             <Form.Item // 超連結
@@ -577,13 +602,24 @@ const BannerPage = () => {
               ]}
             >
               <Upload
+                name="file"
+                action='https://image.ball188.cc/api/image/upload'
+                listType="picture-card"
+                fileList={fileList}
+                beforeUpload={beforeUpload}
+                onChange={handleChange}
+                onPreview={onPreview}
+              >
+                {fileList.length < 5 && '+ Upload'}
+              </Upload>
+              {/* <Upload
                 name="img"
                 listType="picture-card"
                 className="avatar-uploader"
                 customRequest={() => {}}
                 showUploadList={false}
                 beforeUpload={beforeUpload}
-                onChange={handleChange}
+                onChange={handleUploadImg}
               >
                 {imageUrl ? (
                   <img
@@ -599,7 +635,7 @@ const BannerPage = () => {
                 ) : (
                   uploadButton
                 )}
-              </Upload>
+              </Upload> */}
             </Form.Item>
 
             <Form.Item // 超連結

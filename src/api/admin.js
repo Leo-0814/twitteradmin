@@ -135,6 +135,7 @@ export const uploadImg = async (params, status, token) => {
       headers: {
         Authorization: 'bearer ' + token
       },
+      data: form
     })
 
     return res.data.data

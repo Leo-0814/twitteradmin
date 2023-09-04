@@ -8,7 +8,11 @@ import { Button, Form, Input,  InputNumber, Select, Modal, DatePicker, Upload, m
 import { LoadingOutlined, PlusOutlined } from '@ant-design/icons'
 import dayjs from "dayjs"
 
-const BannerPage = () => {
+const BannerPage = ({
+  filePath='imgs/fundding',
+  depositResponse = {}, 
+  onChangeUploadStatus = () => {},
+}) => {
   const navigate = useNavigate()
   const [ bannerList, setBannerList ] = useState([])
   const [ bannerControlId, setBannerControlId ] = useState(0)
@@ -48,78 +52,9 @@ const BannerPage = () => {
     return e?.fileList;
   };
 
-  const [ loading, setLoading ] = useState(false)
   const [ imageUrl, setImageUrl ] = useState();
-
-  const [fileList, setFileList] = useState([
-    {
-      uid: '-1',
-      name: 'image.png',
-      status: 'done',
-      url: 'https://zos.alipayobjects.com/rmsportal/jkjgkEfvpUPVyRjUImniVslZfWPnJuuZ.png',
-    },
-  ]);
-  const onChange = ({ fileList: newFileList }) => {
-    setFileList(newFileList);
-  };
-
-    // 上傳圖片
-  const handleChange = (info) => {
-    if (info.file.status === 'uploading') {
-      setLoading(true);
-      
-      // try {
-      //   const { filepath } = await uploadImg(token)
-      //   setImageUrl(filepath)
-
-      // } catch (error) {
-      //   console.log(error)
-      // }
-      info.file.status = 'done'
-    }
-    if (info.file.status === 'done') {
-      // Get this url from response in real world.
-      getBase64(info.file.originFileObj, (url) => {
-        setLoading(false);
-        
-        console.log(imageUrl)
-        let a = getBase64Url(url)
-        console.log(a)
-        setImageUrl(a);
-      });
-      
-    }
-  };
-  
-
-  const getBase64Url = (pic) => {
-    const blob = base64ImgToFile(pic)
-    const blobUrl = window.URL.createObjectURL(blob)
-    return blobUrl
-  }
-
-  const base64ImgToFile = (dataurl, filename = 'file') => {
-    const arr = dataurl.split(',')
-    const mime = arr[0].match(/:(.*?);/)[1]
-    const suffix = mime.split('/')[1]
-    const bstr = atob(arr[1])
-    let n = bstr.length
-    const u8arr = new Uint8Array(n)
-    while (n--) {
-      u8arr[n] = bstr.charCodeAt(n)
-    }
-    return new File([u8arr], `${filename}.${suffix}`, {
-      type: mime
-    })
-  }
-
-  // 轉換img
-  const getBase64 = (img, callback) => {
-    const reader = new FileReader();
-    // console.log(reader)
-    reader.addEventListener('load', () => callback(reader.result));
-    reader.readAsDataURL(img);
-  };
+  const [ fileList, setFileList ] = useState([]);
+  const [ uploadStatus, setUploadStatus ] = useState('none');
 
   // 點擊預覽圖片
   const onPreview = async (file) => {
@@ -139,17 +74,75 @@ const BannerPage = () => {
     imgWindow?.document.write(image.outerHTML);
   };
 
-  // 判斷副檔名、檔案<2MB
+  // 限制檔案<2MB
   const beforeUpload = (file) => {
-    const isJpgOrPng = file.type === 'image/jpeg' || file.type === 'image/png';
-    if (!isJpgOrPng) {
-      message.error('You can only upload JPG/PNG file!');
-    }
     const isLt2M = file.size / 1024 / 1024 < 2;
     if (!isLt2M) {
-      message.error('Image must smaller than 2MB!');
+      console.log("file.status", file);
+      onChangeUploadStatus('none');
+      setUploadStatus('none');
+      setFileList(fileList);
+      console.log('The file is upper 2MB')
+    } else {
+      setFileList([...fileList, file]);
     }
-    return isJpgOrPng && isLt2M;
+    return isLt2M;
+  }
+
+  // 提交訂單
+  const handleUploadImage = async (options) => {
+    const token = localStorage.getItem('token')
+    console.log(options)
+    const form = new FormData();
+    form.append("img", options.file);
+    form.append("folder", `${filePath}`);
+    // form.forEach(value => console.log(value))
+    await uploadImg(
+      { params: form },
+      {
+        onSuccess: (data) => {
+          // console.log(data)
+          options.onSuccess({
+            uid: new Date().valueOf(),
+            name: data.filepath.split("/").pop(),
+            status: "done",
+            url: data.filepath,
+          });
+        },
+        onError: (error) => {
+          // options.onError(error);
+          // toast({ content: error, type: "error" });
+        },
+      },
+      token
+    );
+  };
+
+  // 表單upload圖片
+  const handleUpdateImage = async (event) => {
+    const { file } = event;
+    console.log(file);
+    file.status = 'done'
+    onChangeUploadStatus(file.status);
+    setUploadStatus(file.status);
+    if (file.status === 'done') {
+      // console.log("hi its done");
+      // console.log(file);
+      if (file?.response) {
+        console.log("hi its response");
+
+        const path = file?.response?.url;
+        const res = await uploadImg(
+          {
+            params: {
+              order_number: depositResponse?.order_number,
+              img: path,
+            },
+          }
+        );
+        console.log(res)
+      }
+    }
   };
 
   // 關閉新建Modal重置內容
@@ -185,7 +178,7 @@ const BannerPage = () => {
     setOpenEditModal(true)
     setBannerControlId(bannerId)
     const targetBanner = bannerList.filter(banner => banner.id === bannerId)
-    console.log(targetBanner)
+    // console.log(targetBanner)
     editForm.setFieldsValue({
       sorting: targetBanner[0].sorting,
       name: targetBanner[0].name,
@@ -436,7 +429,7 @@ const BannerPage = () => {
               name="img"
               label="圖片"
               valuePropName="fileList"
-              getValueFromEvent={normFile}
+              // getValueFromEvent={normFile}
               extra="图片格式限为.jpg/.png/.gif，图片须小于2M，图片最佳显示大小为：1600*586"
               rules={[
                 {
@@ -602,40 +595,36 @@ const BannerPage = () => {
               ]}
             >
               <Upload
-                name="file"
-                action='https://image.ball188.cc/api/image/upload'
+                // className="custom-upload"
+                // maxCount={1}
+                accept=".png, .jpg, .jpeg"
                 listType="picture-card"
-                fileList={fileList}
+                // showUploadList={false}
+                name='editForm-img'
+                customRequest={handleUploadImage}
+                onChange={handleUpdateImage}
                 beforeUpload={beforeUpload}
-                onChange={handleChange}
+                fileList={fileList}
                 onPreview={onPreview}
               >
                 {fileList.length < 5 && '+ Upload'}
+                {/* {uploadStatus === uploadStatusEnum.REMOVED ? (
+                  <>
+                    <div className={`${styles.footerContainer} ${uploadErrorRequired ? styles.error : ""}`}>
+                      <Image
+                        width={70}
+                        height={70}
+                        src={"/images/exchange/icon_upload.png"}
+                        preview={false}
+                      />
+                      <div className={styles.title}>{t("normal.uploadScreenshot")}</div>
+                    </div>
+                    <div className={`${styles.errorMessage} ${uploadErrorRequired ? styles.error : ""}`}>
+                      {t("deposit.errorImage")}
+                    </div>
+                  </>
+                ) : null} */}
               </Upload>
-              {/* <Upload
-                name="img"
-                listType="picture-card"
-                className="avatar-uploader"
-                customRequest={() => {}}
-                showUploadList={false}
-                beforeUpload={beforeUpload}
-                onChange={handleUploadImg}
-              >
-                {imageUrl ? (
-                  <img
-                    src={imageUrl}
-                    alt="avatar"
-                    style={{
-                      width: 'auto',
-                      height: 'auto',
-                      maxWidth: '80%',
-                      maxHeight: '80%',
-                    }}
-                  />
-                ) : (
-                  uploadButton
-                )}
-              </Upload> */}
             </Form.Item>
 
             <Form.Item // 超連結

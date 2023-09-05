@@ -127,7 +127,7 @@ export const editBanner = async ({token, bannerControlId, ...prop}) => {
 
 export const uploadImg = async (params, status, token) => {
   const form = params.params
-  // console.log(status.onSuccess(form))
+
   try {
     const res = await axios({
       method: 'post',
@@ -137,7 +137,7 @@ export const uploadImg = async (params, status, token) => {
       },
       data: form
     })
-
+    
     return res.data.data
   } catch (error) {
     console.error('[UploadImg]', error)

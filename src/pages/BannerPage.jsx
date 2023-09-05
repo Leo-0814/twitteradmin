@@ -97,32 +97,39 @@ const BannerPage = ({
     form.append("img", options.file);
     form.append("folder", `${filePath}`);
     // form.forEach(value => console.log(value))
-    await uploadImg(
-      { params: form },
-      {
-        onSuccess: (data) => {
-          // console.log(data)
-          options.onSuccess({
-            uid: new Date().valueOf(),
-            name: data.filepath.split("/").pop(),
-            status: "done",
-            url: data.filepath,
-          });
+
+    try {
+      const { filepath } = await uploadImg(
+        { params: form },
+        {
+          onSuccess: (data) => {
+            // console.log(data)
+            options.onSuccess({
+              uid: new Date().valueOf(),
+              name: data.filepath.split("/").pop(),
+              status: "done",
+              url: data.filepath,
+            });
+          },
+          onError: (error) => {
+            // options.onError(error);
+            // toast({ content: error, type: "error" });
+          },
         },
-        onError: (error) => {
-          // options.onError(error);
-          // toast({ content: error, type: "error" });
-        },
-      },
-      token
-    );
+        token
+      );
+      console.log(filepath)
+    } catch (error) {
+      
+    }
+    
+    
   };
 
   // 表單upload圖片
   const handleUpdateImage = async (event) => {
     const { file } = event;
-    console.log(file);
-    file.status = 'done'
+    console.log(file)
     onChangeUploadStatus(file.status);
     setUploadStatus(file.status);
     if (file.status === 'done') {
@@ -596,7 +603,7 @@ const BannerPage = ({
             >
               <Upload
                 // className="custom-upload"
-                // maxCount={1}
+                maxCount={1}
                 accept=".png, .jpg, .jpeg"
                 listType="picture-card"
                 // showUploadList={false}
@@ -607,7 +614,7 @@ const BannerPage = ({
                 fileList={fileList}
                 onPreview={onPreview}
               >
-                {fileList.length < 5 && '+ Upload'}
+                {'+ Upload'}
                 {/* {uploadStatus === uploadStatusEnum.REMOVED ? (
                   <>
                     <div className={`${styles.footerContainer} ${uploadErrorRequired ? styles.error : ""}`}>

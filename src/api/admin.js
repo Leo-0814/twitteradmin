@@ -125,7 +125,31 @@ export const editBanner = async ({token, bannerControlId, ...prop}) => {
   }
 }
 
-export const uploadImg = async (params, status, token) => {
+export const createBanner = async ({token, ...prop}) => {
+  prop.position = '前台首頁'? 1: 2
+  prop.end_time = tranTime(prop.end_time)
+  prop.start_time = tranTime(prop.start_time)
+  prop.img = prop.img[0].path
+  try {
+    const res = await axios({
+      method: 'post',
+      url: `${baseUrl}/BRL/banner`,
+      headers: {
+        Authorization: 'bearer ' + token
+      },
+      data: {
+        ...prop,
+        type: 1,
+      }
+    })
+
+    return res.data.data
+  } catch (error) {
+    console.error('[Create banner]', error)
+  }
+}
+
+export const uploadImg = async (params, token) => {
   const form = params.params
 
   try {

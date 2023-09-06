@@ -3,7 +3,7 @@ import BannerContainer from "../component/BannerContainer"
 import LeftContainer from "../component/LeftContainer"
 import bannerActive from '../images/_base/bannerActive.png'
 import { useNavigate } from "react-router-dom"
-import { deleteBanner, disableBanner, editBanner, enableBanner, getBanners, uploadImg } from "../api/admin"
+import { createBanner, deleteBanner, disableBanner, editBanner, enableBanner, getBanners, uploadImg } from "../api/admin"
 import { Button, Form, Input,  InputNumber, Select, Modal, DatePicker, Upload } from "antd"
 import dayjs from "dayjs"
 
@@ -87,7 +87,7 @@ const BannerPage = ({
     return isLt2M;
   }
 
-  // 提交訂單
+  // 上傳圖片
   const handleUploadImage = async (options) => {
     const token = localStorage.getItem('token')
     const form = new FormData();
@@ -98,63 +98,41 @@ const BannerPage = ({
     try {
       const { filepath } = await uploadImg(
         { params: form },
-        {
-          onSuccess: (data) => {
-            // console.log(data)
-            options.onSuccess({
-              uid: new Date().valueOf(),
-              name: data.filepath.split("/").pop(),
-              status: "done",
-              url: data.filepath,
-            });
-          },
-          onError: (error) => {
-            // options.onError(error);
-            // toast({ content: error, type: "error" });
-          },
-        },
         token
       );
-      editForm.setFieldValue('img',[{
-        uid: new Date().valueOf(),
-        name: filepath.split("/").pop(),
-        status: "done",
-        url: `https://dl.ball188.cc/${filepath}`,
-      }])
+      if (openCreateModal) {
+        createForm.setFieldValue('img',[{
+          uid: new Date().valueOf(),
+          name: filepath.split("/").pop(),
+          status: "done",
+          url: `https://dl.ball188.cc/${filepath}`,
+          path: filepath
+        }])
+      } else if (openEditModal) {
+        editForm.setFieldValue('img',[{
+          uid: new Date().valueOf(),
+          name: filepath.split("/").pop(),
+          status: "done",
+          url: `https://dl.ball188.cc/${filepath}`,
+        }])
+      }
     } catch (error) {
       console.log(error)
     }
   };
 
-  // 表單upload圖片
-  const handleUpdateImage = async (event) => {
-    const { file } = event;
-    // console.log(file)
-    // onChangeUploadStatus(file.status);
-    // setUploadStatus(file.status);
-    // if (file.status === 'done') {
-    //   // console.log("hi its done");
-    //   // console.log(file);
-    //   if (file?.response) {
-    //     console.log("hi its response");
-
-    //     const path = file?.response?.url;
-    //     const res = await uploadImg(
-    //       {
-    //         params: {
-    //           order_number: depositResponse?.order_number,
-    //           img: path,
-    //         },
-    //       }
-    //     );
-    //     console.log(res)
-    //   }
-    // }
-  };
-
   // 關閉新建Modal重置內容
   const handleCancelCreateModal = () => {
     setOpenCreateModal(false)
+    createForm.setFieldsValue({
+      sorting: '',
+      name: '',
+      url: '',
+      position: '',
+      start_time: '',
+      end_time: '',
+      img: [],
+    })
   }
 
   // 顯示啟用/禁用modal
@@ -242,18 +220,21 @@ const BannerPage = ({
   }
 
   //點擊新建確認
-  const handleCreateModalOk = async () => {
-    setConfirmLoading(true);
+  const handleCreateModalOk = async (values) => {
     const token = localStorage.getItem('token')
+    setConfirmLoading(true);
+    try {
+      const res = await createBanner({token, ...values})
 
-    // try {
-    //   await deleteBanner(token, bannerControlId)
-    // } catch (error) {
-    //   console.log(error)
-    // }
-
+      if (res === 1) {  
+        const res = await getBanners(token)
+        setBannerList(res)
+      }
+    } catch (error) {
+      console.log(error)
+    }
     setTimeout(async () => {
-      setOpenDeleteModal(false);
+      handleCancelCreateModal()
       setConfirmLoading(false);
       const res = await getBanners(token)
       setBannerList(res)
@@ -262,7 +243,6 @@ const BannerPage = ({
 
   // 點擊編輯確認
   const handleEditModalOk = async (values) => {
-    console.log(values)
     const token = localStorage.getItem('token')
     setConfirmLoading(true);
     try {
@@ -278,6 +258,8 @@ const BannerPage = ({
     setTimeout(async () => {
       setOpenEditModal(false);
       setConfirmLoading(false);
+      const res = await getBanners(token)
+      setBannerList(res)
     }, 500);
   }
 
@@ -349,7 +331,6 @@ const BannerPage = ({
         <Modal // 新建
           title="新建"
           open={openCreateModal}
-          confirmLoading={confirmLoading}
           onCancel={handleCancelCreateModal}
           footer={
             [
@@ -357,7 +338,7 @@ const BannerPage = ({
                 取消
             </Button>
             ,
-            <Button form="createForm" type='primary' htmlType="submit">
+            <Button form="createForm" type='primary' htmlType="submit" loading={confirmLoading}>
                 確認
             </Button>
             ]
@@ -384,6 +365,7 @@ const BannerPage = ({
               position: '',
               start_time: '',
               end_time: '',
+              img: []
             }}
           >
             <Form.Item // 排序
@@ -436,7 +418,7 @@ const BannerPage = ({
               name="img"
               label="圖片"
               valuePropName="fileList"
-              // getValueFromEvent={normFile}
+              getValueFromEvent={normFile}
               extra="图片格式限为.jpg/.png/.gif，图片须小于2M，图片最佳显示大小为：1600*586"
               rules={[
                 {
@@ -445,7 +427,37 @@ const BannerPage = ({
                 },
               ]}
             >
-              
+              <Upload
+                // className="custom-upload"
+                maxCount={1}
+                accept=".png, .jpg, .jpeg"
+                listType="picture-card"
+                // showUploadList={false}
+                name='createForm-img'
+                customRequest={handleUploadImage}
+                // onChange={handleUpdateImage}
+                beforeUpload={beforeUpload}
+                fileList={fileList}
+                onPreview={onPreview}
+              >
+                {'+ Upload'}
+                {/* {uploadStatus === uploadStatusEnum.REMOVED ? (
+                  <>
+                    <div className={`${styles.footerContainer} ${uploadErrorRequired ? styles.error : ""}`}>
+                      <Image
+                        width={70}
+                        height={70}
+                        src={"/images/exchange/icon_upload.png"}
+                        preview={false}
+                      />
+                      <div className={styles.title}>{t("normal.uploadScreenshot")}</div>
+                    </div>
+                    <div className={`${styles.errorMessage} ${uploadErrorRequired ? styles.error : ""}`}>
+                      {t("deposit.errorImage")}
+                    </div>
+                  </>
+                ) : null} */}
+              </Upload>
             </Form.Item>
 
             <Form.Item // 超連結

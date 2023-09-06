@@ -105,7 +105,7 @@ export const editBanner = async ({token, bannerControlId, ...prop}) => {
   prop.position = '前台首頁'? 1: 2
   prop.end_time = tranTime(prop.end_time)
   prop.start_time = tranTime(prop.start_time)
-  console.log(prop.img)
+  prop.img = prop.img[0].url
   try {
     const res = await axios({
       method: 'put',

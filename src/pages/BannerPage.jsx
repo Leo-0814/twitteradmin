@@ -4,8 +4,7 @@ import LeftContainer from "../component/LeftContainer"
 import bannerActive from '../images/_base/bannerActive.png'
 import { useNavigate } from "react-router-dom"
 import { deleteBanner, disableBanner, editBanner, enableBanner, getBanners, uploadImg } from "../api/admin"
-import { Button, Form, Input,  InputNumber, Select, Modal, DatePicker, Upload, message } from "antd"
-import { LoadingOutlined, PlusOutlined } from '@ant-design/icons'
+import { Button, Form, Input,  InputNumber, Select, Modal, DatePicker, Upload } from "antd"
 import dayjs from "dayjs"
 
 const BannerPage = ({
@@ -52,7 +51,6 @@ const BannerPage = ({
     return e?.fileList;
   };
 
-  const [ imageUrl, setImageUrl ] = useState();
   const [ fileList, setFileList ] = useState([]);
   const [ uploadStatus, setUploadStatus ] = useState('none');
 
@@ -92,7 +90,6 @@ const BannerPage = ({
   // 提交訂單
   const handleUploadImage = async (options) => {
     const token = localStorage.getItem('token')
-    console.log(options)
     const form = new FormData();
     form.append("img", options.file);
     form.append("folder", `${filePath}`);
@@ -118,44 +115,46 @@ const BannerPage = ({
         },
         token
       );
-      console.log(filepath)
+      editForm.setFieldValue('img',[{
+        uid: new Date().valueOf(),
+        name: filepath.split("/").pop(),
+        status: "done",
+        url: `https://dl.ball188.cc/${filepath}`,
+      }])
     } catch (error) {
-      
+      console.log(error)
     }
-    
-    
   };
 
   // 表單upload圖片
   const handleUpdateImage = async (event) => {
     const { file } = event;
-    console.log(file)
-    onChangeUploadStatus(file.status);
-    setUploadStatus(file.status);
-    if (file.status === 'done') {
-      // console.log("hi its done");
-      // console.log(file);
-      if (file?.response) {
-        console.log("hi its response");
+    // console.log(file)
+    // onChangeUploadStatus(file.status);
+    // setUploadStatus(file.status);
+    // if (file.status === 'done') {
+    //   // console.log("hi its done");
+    //   // console.log(file);
+    //   if (file?.response) {
+    //     console.log("hi its response");
 
-        const path = file?.response?.url;
-        const res = await uploadImg(
-          {
-            params: {
-              order_number: depositResponse?.order_number,
-              img: path,
-            },
-          }
-        );
-        console.log(res)
-      }
-    }
+    //     const path = file?.response?.url;
+    //     const res = await uploadImg(
+    //       {
+    //         params: {
+    //           order_number: depositResponse?.order_number,
+    //           img: path,
+    //         },
+    //       }
+    //     );
+    //     console.log(res)
+    //   }
+    // }
   };
 
   // 關閉新建Modal重置內容
   const handleCancelCreateModal = () => {
     setOpenCreateModal(false)
-    setImageUrl('')
   }
 
   // 顯示啟用/禁用modal
@@ -185,7 +184,7 @@ const BannerPage = ({
     setOpenEditModal(true)
     setBannerControlId(bannerId)
     const targetBanner = bannerList.filter(banner => banner.id === bannerId)
-    // console.log(targetBanner)
+    console.log(targetBanner)
     editForm.setFieldsValue({
       sorting: targetBanner[0].sorting,
       name: targetBanner[0].name,
@@ -193,9 +192,10 @@ const BannerPage = ({
       position: targetBanner[0].position === 1? '前台首頁': targetBanner[0].position,
       start_time: dayjs(targetBanner[0].start_time),
       end_time: dayjs(targetBanner[0].end_time),
-      img: [targetBanner[0].img],
+      img: [{
+        url: targetBanner[0].img,
+      }],
     })
-    setImageUrl(targetBanner[0].img)
   }
 
   // 點擊啟用/禁用確認
@@ -262,9 +262,9 @@ const BannerPage = ({
 
   // 點擊編輯確認
   const handleEditModalOk = async (values) => {
+    console.log(values)
     const token = localStorage.getItem('token')
     setConfirmLoading(true);
-    values.img = imageUrl
     try {
       const res = await editBanner({token, bannerControlId, ...values})
 
@@ -445,30 +445,7 @@ const BannerPage = ({
                 },
               ]}
             >
-              {/* <Upload
-                name="img"
-                listType="picture-card"
-                className="avatar-uploader"
-                customRequest={() => {}}
-                showUploadList={false}
-                beforeUpload={beforeUpload}
-                onChange={handleChange}
-              >
-                {imageUrl ? (
-                  <img
-                    src={imageUrl}
-                    alt="avatar"
-                    style={{
-                      width: 'auto',
-                      height: 'auto',
-                      maxWidth: '80%',
-                      maxHeight: '80%',
-                    }}
-                  />
-                ) : (
-                  uploadButton
-                )}
-              </Upload> */}
+              
             </Form.Item>
 
             <Form.Item // 超連結
@@ -513,7 +490,6 @@ const BannerPage = ({
         <Modal // 編輯
           title="編輯"
           open={openEditModal}
-          confirmLoading={confirmLoading}
           onCancel={() => setOpenEditModal(false)}
           footer={
             [
@@ -521,7 +497,7 @@ const BannerPage = ({
                 取消
             </Button>
             ,
-            <Button form="editForm" type='primary' htmlType="submit">
+            <Button form="editForm" type='primary' htmlType="submit" loading={confirmLoading}>
                 確認
             </Button>
             ]
@@ -609,7 +585,7 @@ const BannerPage = ({
                 // showUploadList={false}
                 name='editForm-img'
                 customRequest={handleUploadImage}
-                onChange={handleUpdateImage}
+                // onChange={handleUpdateImage}
                 beforeUpload={beforeUpload}
                 fileList={fileList}
                 onPreview={onPreview}

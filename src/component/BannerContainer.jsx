@@ -1,6 +1,6 @@
-import { Badge, Button, Space, Table } from "antd"
+import { Badge, Button, Pagination, Space, Table } from "antd"
 
-const BannerContainer = ({ bannerList, showStatusModal, showDeleteModal,showCreateModal, showEditModal }) => {
+const BannerContainer = ({ bannerList, showStatusModal, showDeleteModal,showCreateModal, showEditModal, onClickPagination, bannerCount }) => {
   const columns = [
   {
     title: '排序',
@@ -119,7 +119,14 @@ const BannerContainer = ({ bannerList, showStatusModal, showDeleteModal,showCrea
           dataSource={bannerList} 
           scroll={{
             x: 1200,
-            y: 500,
+          }}
+          pagination={{
+            total: {bannerCount},
+            showTotal: (total, range) => `第${range[0]}到${range[1]}條，總共${total}條`,
+            defaultPageSize: 10,
+            defaultCurrent: 1,
+            showSizeChanger: true,
+            size: 'small',
           }}
         />
       </div>

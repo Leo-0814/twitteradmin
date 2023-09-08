@@ -123,6 +123,9 @@ a:visited {
   background-color: rgb(193, 193, 193);
   border-radius: 4px;
 }
+.mainContainer .postContainer .postContainer-post::-webkit-scrollbar-thumb:hover {
+  background-color: rgb(161, 161, 161);
+}
 .mainContainer .userContainer {
   width: 100%;
   border: 1px solid rgb(230, 236, 240);
@@ -158,6 +161,9 @@ a:visited {
   background-color: rgb(193, 193, 193);
   border-radius: 4px;
 }
+.mainContainer .userContainer .userContainer-user::-webkit-scrollbar-thumb:hover {
+  background-color: rgb(161, 161, 161);
+}
 .mainContainer .bannerContainer {
   overflow: hidden;
   border: 1px solid rgb(230, 236, 240);
@@ -179,8 +185,9 @@ a:visited {
 .mainContainer .bannerContainer .bannerContainer-banner {
   padding: 16px;
   display: flex;
-  flex-wrap: wrap;
-  justify-content: flex-end;
+  flex-direction: column;
+  height: 100%;
+  overflow-y: auto;
 }
 .mainContainer .bannerContainer .bannerContainer-banner::-webkit-scrollbar-track {
   background-color: rgb(240, 240, 240);
@@ -192,8 +199,12 @@ a:visited {
   background-color: rgb(193, 193, 193);
   border-radius: 4px;
 }
+.mainContainer .bannerContainer .bannerContainer-banner::-webkit-scrollbar-thumb:hover {
+  background-color: rgb(161, 161, 161);
+}
 .mainContainer .bannerContainer .bannerContainer-banner .bannerContainer-banner-create {
   margin-bottom: 16px;
+  align-self: flex-end;
 }
 .mainContainer .bannerContainer .bannerContainer-banner .bannerContainer-banner-table {
   width: 100%;
@@ -207,10 +218,22 @@ a:visited {
   padding: 0;
 }
 
-.ant-modal-body .ant-form-item {
-  position: relative;
+.ant-table-content::-webkit-scrollbar-track {
+  background-color: rgb(240, 240, 240);
 }
-.ant-modal-body .ant-form-item .ant-form-item-row .ant-form-item-extra {
+.ant-table-content::-webkit-scrollbar {
+  height: 8px;
+  position: absolute;
+}
+.ant-table-content::-webkit-scrollbar-thumb {
+  background-color: rgb(193, 193, 193);
+  border-radius: 4px;
+}
+.ant-table-content::-webkit-scrollbar-thumb:hover {
+  background-color: rgb(161, 161, 161);
+}
+
+.ant-form-item-extra {
   position: absolute;
   top: -30px;
   left: 100px;

@@ -9,8 +9,6 @@ import dayjs from "dayjs"
 
 const BannerPage = ({
   filePath='imgs/fundding',
-  depositResponse = {}, 
-  onChangeUploadStatus = () => {},
 }) => {
   const navigate = useNavigate()
   const [ bannerList, setBannerList ] = useState([])
@@ -22,6 +20,7 @@ const BannerPage = ({
   const [ openCreateModal, setOpenCreateModal ] = useState(false);
   const [ openEditModal, setOpenEditModal ] = useState(false);
   const [ confirmLoading, setConfirmLoading ] = useState(false);
+  const [ fileList, setFileList ] = useState([]);
   const { Option } = Select;
   const formItemLayout = {
     labelCol: {
@@ -51,8 +50,6 @@ const BannerPage = ({
     return e?.fileList;
   };
 
-  const [ fileList, setFileList ] = useState([]);
-  const [ uploadStatus, setUploadStatus ] = useState('none');
 
   // 點擊預覽圖片
   const onPreview = async (file) => {
@@ -77,8 +74,6 @@ const BannerPage = ({
     const isLt2M = file.size / 1024 / 1024 < 2;
     if (!isLt2M) {
       console.log("file.status", file);
-      onChangeUploadStatus('none');
-      setUploadStatus('none');
       setFileList(fileList);
       console.log('The file is upper 2MB')
     } else {
@@ -124,15 +119,7 @@ const BannerPage = ({
   // 關閉新建Modal重置內容
   const handleCancelCreateModal = () => {
     setOpenCreateModal(false)
-    createForm.setFieldsValue({
-      sorting: '',
-      name: '',
-      url: '',
-      position: '',
-      start_time: '',
-      end_time: '',
-      img: [],
-    })
+    createForm.resetFields(['sorting', 'name', 'url', 'position', 'start_time', 'end_time', 'img'])
   }
 
   // 顯示啟用/禁用modal
@@ -293,7 +280,7 @@ const BannerPage = ({
     <>
       <div className="mainContainer">
         <LeftContainer banner={bannerActive}></LeftContainer>
-        <BannerContainer bannerList={bannerList} showStatusModal={handleShowStatusModal} showDeleteModal={handleShowDeleteModal} showCreateModal={handleShowCreateModal} showEditModal={handleShowEditModal}></BannerContainer>
+        <BannerContainer bannerList={bannerList} showStatusModal={handleShowStatusModal} showDeleteModal={handleShowDeleteModal} showCreateModal={handleShowCreateModal} showEditModal={handleShowEditModal} bannerCount={bannerList.length}></BannerContainer>
 
         <Modal //啟用
           title="啟用"

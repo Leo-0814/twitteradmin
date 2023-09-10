@@ -6,7 +6,7 @@ html,
 body {
   font-family: 'Lato', 'Noto Sans TC', sans-serif;
   height: 100%;
-  overflow: hidden;
+  overflow-y: hidden;
 }
 
 input::placeholder {
@@ -37,6 +37,12 @@ a:visited {
   font-size: 20px;
   width: 356px;
   height: 46px;
+}
+
+.login-linkContainer {
+  position: absolute;
+  right: 0px;
+  bottom: -50px;
 }
 
 // User page
@@ -203,7 +209,27 @@ a:visited {
     flex-direction: column;
     height: 100vh;
     padding-bottom: 60px;
+    overflow-y: auto;
 
+    //卷軸底部
+    &::-webkit-scrollbar-track {
+      background-color: rgba(240, 240, 240, 1);
+    }
+
+    //卷軸整體
+    &::-webkit-scrollbar {
+      width: 8px;
+    }
+
+    //卷軸本身
+    &::-webkit-scrollbar-thumb {
+      background-color: rgba(193, 193, 193, 1);
+      border-radius: 4px;
+      
+      &:hover {
+        background-color: rgb(161, 161, 161);
+      }
+    }
     .bannerContainer-header {
       display: flex;
       align-items: center;
@@ -216,37 +242,24 @@ a:visited {
         line-height: 26px;
       }
     }
-
+    .bannerContainer-search {
+      width: 100%;
+      height: auto;
+    }
     .bannerContainer-banner {
       padding: 16px;
       display: flex;
       flex-direction: column;
       height: 100%;
-      overflow-y: auto;
-
-      //卷軸底部
-      &::-webkit-scrollbar-track {
-        background-color: rgba(240, 240, 240, 1);
-      }
-
-      //卷軸整體
-      &::-webkit-scrollbar {
-        width: 8px;
-      }
-
-      //卷軸本身
-      &::-webkit-scrollbar-thumb {
-        background-color: rgba(193, 193, 193, 1);
-        border-radius: 4px;
-        
-        &:hover {
-          background-color: rgb(161, 161, 161);
-        }
-      }
+      position: relative;
 
       .bannerContainer-banner-create {
         margin-bottom: 16px;
         align-self: flex-end;
+        position: absolute;
+        right: 150px;
+        top: 30px;
+        z-index: 2;
       }
       .bannerContainer-banner-table {
         width: 100%;
@@ -263,6 +276,8 @@ a:visited {
     }
   }
 }
+
+
 .ant-table-content {
   // position: absolute;
   //卷軸底部

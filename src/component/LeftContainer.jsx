@@ -12,10 +12,10 @@ const LeftContainer = ({post, user, banner}) => {
 
   // 點擊登出
   const handleClick = async () => {
-    const token = localStorage.getItem('token')
+    const adminToken = localStorage.getItem('adminToken')
     try {
-      await logout(token)
-      localStorage.removeItem('token')
+      await logout(adminToken)
+      localStorage.removeItem('adminToken')
       navigate('/login')
     } catch (error) {
       console.log(error)

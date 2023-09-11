@@ -20,8 +20,12 @@ const BannerPage = ({
   const [ openCreateModal, setOpenCreateModal ] = useState(false);
   const [ openEditModal, setOpenEditModal ] = useState(false);
   const [ confirmLoading, setConfirmLoading ] = useState(false);
+  const [ searchLoading, setSearchLoading ] = useState(false);
   const [ fileList, setFileList ] = useState([]);
+  const [ current, setCurrent ] = useState(1)
   const { Option } = Select;
+  const [ createForm ] = Form.useForm()
+  const [ editForm ] = Form.useForm()
   const formItemLayout = {
     labelCol: {
       xs: {
@@ -40,8 +44,6 @@ const BannerPage = ({
       },
     },
   };
-  const [ createForm ] = Form.useForm()
-  const [ editForm ] = Form.useForm()
 
   const normFile = (e) => {
     if (Array.isArray(e)) {
@@ -49,7 +51,6 @@ const BannerPage = ({
     }
     return e?.fileList;
   };
-
 
   // 點擊預覽圖片
   const onPreview = async (file) => {
@@ -149,7 +150,7 @@ const BannerPage = ({
     setOpenEditModal(true)
     setBannerControlId(bannerId)
     const targetBanner = bannerList.filter(banner => banner.id === bannerId)
-    console.log(targetBanner)
+    // console.log(targetBanner)
     editForm.setFieldsValue({
       sorting: targetBanner[0].sorting,
       name: targetBanner[0].name,
@@ -174,17 +175,22 @@ const BannerPage = ({
       } else if (bannerControlStatus === 1) {
         await disableBanner(adminToken, bannerControlId)
       }
+      setOpenStatus0Modal(false);
+      setOpenStatus1Modal(false);
+      setConfirmLoading(false);
     } catch (error) {
       console.log(error)
     }
 
     setTimeout(async () => {
-      setOpenStatus0Modal(false);
-      setOpenStatus1Modal(false);
-      setConfirmLoading(false);
+      setSearchLoading(true)
       const res = await getBanners(adminToken)
-      setBannerList(res)
-    }, 500);
+
+      if (res) {
+        setBannerList(res)
+        setSearchLoading(false)
+      }
+    }, 0)
   };
 
   //點擊刪除確認
@@ -194,16 +200,21 @@ const BannerPage = ({
 
     try {
       await deleteBanner(adminToken, bannerControlId)
+      setOpenDeleteModal(false);
+      setConfirmLoading(false);
     } catch (error) {
       console.log(error)
     }
 
     setTimeout(async () => {
-      setOpenDeleteModal(false);
-      setConfirmLoading(false);
+      setSearchLoading(true)
       const res = await getBanners(adminToken)
-      setBannerList(res)
-    }, 500);
+
+      if (res) {
+        setBannerList(res)
+        setSearchLoading(false)
+      }
+    }, 0)
   }
 
   //點擊新建確認
@@ -213,19 +224,23 @@ const BannerPage = ({
     try {
       const res = await createBanner({adminToken, ...values})
 
-      if (res === 1) {  
-        const res = await getBanners(adminToken)
-        setBannerList(res)
+      if (res) {
+        handleCancelCreateModal()
+        setConfirmLoading(false);
       }
+
+      setTimeout(async () => {
+        setSearchLoading(true)
+        const res = await getBanners(adminToken)
+
+        if (res) {
+          setBannerList(res)
+          setSearchLoading(false)
+        }
+      }, 0)
     } catch (error) {
       console.log(error)
     }
-    setTimeout(async () => {
-      handleCancelCreateModal()
-      setConfirmLoading(false);
-      const res = await getBanners(adminToken)
-      setBannerList(res)
-    }, 500);
   }
 
   // 點擊編輯確認
@@ -235,26 +250,65 @@ const BannerPage = ({
     try {
       const res = await editBanner({adminToken, bannerControlId, ...values})
 
-      if (res === 1) {  
+      if (res === 1) {
+        setOpenEditModal(false);
+        setConfirmLoading(false);
+      }
+
+      setTimeout(async () => {
+        setSearchLoading(true)
         const res = await getBanners(adminToken)
+
+        if (res) {
+          setBannerList(res)
+          setSearchLoading(false)
+        }
+      }, 0)
+    } catch (error) {
+      console.log(error)
+    }
+  }
+
+  // 點擊搜尋欄位查詢按鈕
+  const handleClickSearch = async (params) => {
+    const adminToken = localStorage.getItem('adminToken')
+    setSearchLoading(true)
+    try {
+      const res = await getBanners(adminToken, params)
+      
+      if (res) {
         setBannerList(res)
+        setSearchLoading(false)
+        setCurrent(1)
       }
     } catch (error) {
       console.log(error)
     }
-    setTimeout(async () => {
-      setOpenEditModal(false);
-      setConfirmLoading(false);
+  }
+
+  // 點擊搜尋欄位重置按鈕
+  const onClickReset = async () => {
+    const adminToken = localStorage.getItem('adminToken')
+    setSearchLoading(true)
+
+    try {
       const res = await getBanners(adminToken)
-      setBannerList(res)
-    }, 500);
+      
+      if (res) {
+        setBannerList(res)
+        setSearchLoading(false)
+        setCurrent(1)
+      }
+    } catch (error) {
+      console.log(error)
+    }
   }
 
   // 初始拿輪播列表
   useEffect(() => {
     const getBannersAsync = async () => {
+      setSearchLoading(true)
       const adminToken = localStorage.getItem('adminToken')
-
       if (!adminToken) {
         navigate('/login')
         return
@@ -264,10 +318,9 @@ const BannerPage = ({
         const res = await getBanners(adminToken)
         
         if (res) {
+          console.log(res)
           setBannerList(res)
-        } else {
-          localStorage.removeItem('adminToken')
-          navigate('/login')
+          setSearchLoading(false)
         }
       } catch (error) {
         console.log(error)
@@ -280,374 +333,378 @@ const BannerPage = ({
     <>
       <div className="mainContainer">
         <LeftContainer banner={bannerActive}></LeftContainer>
-        <BannerContainer bannerList={bannerList} showStatusModal={handleShowStatusModal} showDeleteModal={handleShowDeleteModal} showCreateModal={handleShowCreateModal} showEditModal={handleShowEditModal} bannerCount={bannerList.length}></BannerContainer>
 
-        <Modal //啟用
-          title="啟用"
-          open={openStatus0Modal}
-          onOk={handleStatusModalOk}
-          confirmLoading={confirmLoading}
-          onCancel={() => setOpenStatus0Modal(false)}
-          okText="確定"
-          cancelText="取消"
-        >
-          <p>是否啟用輪播圖?</p>
-        </Modal>:
-        <Modal //禁用
-          title="禁用"
-          open={openStatus1Modal}
-          onOk={handleStatusModalOk}
-          confirmLoading={confirmLoading}
-          onCancel={() => setOpenStatus1Modal(false)}
-          okText="確定"
-          cancelText="取消"
-        >
-          <p>是否禁用輪播圖?</p>
-        </Modal>
-        <Modal // 刪除
-          title="刪除"
-          open={openDeleteModal}
-          onOk={handleDeleteModalOk}
-          confirmLoading={confirmLoading}
-          onCancel={() => setOpenDeleteModal(false)}
-          okText="確定"
-          cancelText="取消"
-        >
-          <p>是否刪除輪播圖?</p>
-        </Modal>
-        <Modal // 新建
-          title="新建"
-          open={openCreateModal}
-          onCancel={handleCancelCreateModal}
-          footer={
-            [
-            <Button form="createForm" onClick={handleCancelCreateModal}>
-                取消
-            </Button>
-            ,
-            <Button form="createForm" type='primary' htmlType="submit" loading={confirmLoading}>
-                確認
-            </Button>
-            ]
-          }
-          className="banner-create-modal"
-          width={800}
-        >
-          <Form
-            {...formItemLayout}
-            form={createForm}
-            id="createForm"
-            name="createForm"
-            onFinish={handleCreateModalOk}
-            layout="vertical"
-            style={{
-              maxWidth: 800,
-            }}
-            scrollToFirstError
-            className="banner-create-form"
-            initialValues={{
-              sorting: '',
-              name: '',
-              url: '',
-              position: '',
-              start_time: '',
-              end_time: '',
-              img: []
-            }}
+        <BannerContainer bannerList={bannerList} showStatusModal={handleShowStatusModal} showDeleteModal={handleShowDeleteModal} showCreateModal={handleShowCreateModal} showEditModal={handleShowEditModal} bannerCount={bannerList.length} onClickSearch={handleClickSearch} onClickReset={onClickReset} confirmLoading={confirmLoading} searchLoading={searchLoading} current={current} onChangePage={(page) => setCurrent(page)}></BannerContainer>
+        
+        {/* Modal */}
+        <>  
+          <Modal //啟用
+            title="啟用"
+            open={openStatus0Modal}
+            onOk={handleStatusModalOk}
+            confirmLoading={confirmLoading}
+            onCancel={() => setOpenStatus0Modal(false)}
+            okText="確定"
+            cancelText="取消"
           >
-            <Form.Item // 排序
-              name="sorting"
-              label="排序"
-              rules={[
-                {
-                  required: true,
-                  message: 'Please input sorting!',
-                },
-              ]}
-            >
-              <InputNumber
-                style={{
-                  width: '100%',
-                }}
-              />
-            </Form.Item>
-
-            <Form.Item // 名稱
-              name="name"
-              label="名稱"
-              rules={[
-                {
-                  required: true,
-                  message: 'Please input name!',
-                  whitespace: true,
-                },
-              ]}
-            >
-              <Input />
-            </Form.Item>
-
-            <Form.Item // 顯示位置
-              name="position"
-              label="顯示位置"
-              rules={[
-                {
-                  required: true,
-                  message: 'Please select position!',
-                },
-              ]}
-            >
-              <Select placeholder="請選擇">
-                <Option value="1">前台首頁</Option>
-              </Select>
-            </Form.Item>
-
-            <Form.Item
-              name="img"
-              label="圖片"
-              valuePropName="fileList"
-              getValueFromEvent={normFile}
-              extra="图片格式限为.jpg/.png/.gif，图片须小于2M，图片最佳显示大小为：1600*586"
-              rules={[
-                {
-                  required: true,
-                  message: 'Please input img!',
-                },
-              ]}
-            >
-              <Upload
-                // className="custom-upload"
-                maxCount={1}
-                accept=".png, .jpg, .jpeg"
-                listType="picture-card"
-                // showUploadList={false}
-                name='createForm-img'
-                customRequest={handleUploadImage}
-                // onChange={handleUpdateImage}
-                beforeUpload={beforeUpload}
-                fileList={fileList}
-                onPreview={onPreview}
-              >
-                {'+ Upload'}
-                {/* {uploadStatus === uploadStatusEnum.REMOVED ? (
-                  <>
-                    <div className={`${styles.footerContainer} ${uploadErrorRequired ? styles.error : ""}`}>
-                      <Image
-                        width={70}
-                        height={70}
-                        src={"/images/exchange/icon_upload.png"}
-                        preview={false}
-                      />
-                      <div className={styles.title}>{t("normal.uploadScreenshot")}</div>
-                    </div>
-                    <div className={`${styles.errorMessage} ${uploadErrorRequired ? styles.error : ""}`}>
-                      {t("deposit.errorImage")}
-                    </div>
-                  </>
-                ) : null} */}
-              </Upload>
-            </Form.Item>
-
-            <Form.Item // 超連結
-              name="url"
-              label="超連結"
-              rules={[
-                {
-                  required: true,
-                  message: 'Please input url!',
-                  whitespace: true,
-                },
-              ]}
-            >
-              <Input />
-            </Form.Item>
-
-            <Form.Item 
-              name="start_time" 
-              label="開始時間"
-              rules={[
-                {
-                  required: true,
-                  message: 'Please input start_time!',
-                },
-              ]}>
-              <DatePicker showTime format="YYYY-MM-DD HH:mm:ss" placeholder="請選擇"/>
-            </Form.Item>
-
-            <Form.Item 
-              name="end_time" 
-              label="結束時間"
-              rules={[
-                {
-                  required: true,
-                  message: 'Please input end_time!',
-                },
-              ]}>
-              <DatePicker showTime format="YYYY-MM-DD HH:mm:ss" placeholder="請選擇"/>
-            </Form.Item>
-          </Form>
-        </Modal>
-        <Modal // 編輯
-          title="編輯"
-          open={openEditModal}
-          onCancel={() => setOpenEditModal(false)}
-          footer={
-            [
-            <Button form="editForm" onClick={() => setOpenEditModal(false)}>
-                取消
-            </Button>
-            ,
-            <Button form="editForm" type='primary' htmlType="submit" loading={confirmLoading}>
-                確認
-            </Button>
-            ]
-          }
-          className="banner-create-modal"
-          width={800}
-        >
-          <Form
-            {...formItemLayout}
-            form={editForm}
-            id="editForm"
-            name="editForm"
-            onFinish={handleEditModalOk}
-            layout="vertical"
-            style={{
-              maxWidth: 800,
-            }}
-            scrollToFirstError
-            className="banner-create-form"
+            <p>是否啟用輪播圖?</p>
+          </Modal>:
+          <Modal //禁用
+            title="禁用"
+            open={openStatus1Modal}
+            onOk={handleStatusModalOk}
+            confirmLoading={confirmLoading}
+            onCancel={() => setOpenStatus1Modal(false)}
+            okText="確定"
+            cancelText="取消"
           >
-            <Form.Item // 排序
-              name="sorting"
-              label="排序"
-              rules={[
-                {
-                  required: true,
-                  message: 'Please input sorting!',
-                },
-              ]}
+            <p>是否禁用輪播圖?</p>
+          </Modal>
+          <Modal // 刪除
+            title="刪除"
+            open={openDeleteModal}
+            onOk={handleDeleteModalOk}
+            confirmLoading={confirmLoading}
+            onCancel={() => setOpenDeleteModal(false)}
+            okText="確定"
+            cancelText="取消"
+          >
+            <p>是否刪除輪播圖?</p>
+          </Modal>
+          <Modal // 新建
+            title="新建"
+            open={openCreateModal}
+            onCancel={handleCancelCreateModal}
+            footer={
+              [
+              <Button form="createForm" onClick={handleCancelCreateModal}>
+                  取消
+              </Button>
+              ,
+              <Button form="createForm" type='primary' htmlType="submit" loading={confirmLoading}>
+                  確認
+              </Button>
+              ]
+            }
+            className="banner-create-modal"
+            width={800}
+          >
+            <Form
+              {...formItemLayout}
+              form={createForm}
+              id="createForm"
+              name="createForm"
+              onFinish={handleCreateModalOk}
+              layout="vertical"
+              style={{
+                maxWidth: 800,
+              }}
+              scrollToFirstError
+              className="banner-create-form"
+              initialValues={{
+                sorting: '',
+                name: '',
+                url: '',
+                position: '',
+                start_time: '',
+                end_time: '',
+                img: []
+              }}
             >
-              <InputNumber
-                style={{
-                  width: '100%',
-                }}
-              />
-            </Form.Item>
-
-            <Form.Item // 名稱
-              name="name"
-              label="名稱"
-              rules={[
-                {
-                  required: true,
-                  message: 'Please input name!',
-                  whitespace: true,
-                },
-              ]}
-            >
-              <Input />
-            </Form.Item>
-
-            <Form.Item // 顯示位置
-              name="position"
-              label="顯示位置"
-              rules={[
-                {
-                  required: true,
-                  message: 'Please select position!',
-                },
-              ]}
-            >
-              <Select placeholder="請選擇">
-                <Option value="1">前台首頁</Option>
-              </Select>
-            </Form.Item>
-
-            <Form.Item
-              name="img"
-              label="圖片"
-              valuePropName="fileList"
-              getValueFromEvent={normFile}
-              extra="图片格式限为.jpg/.png/.gif，图片须小于2M，图片最佳显示大小为：1600*586"
-              rules={[
-                {
-                  required: true,
-                  message: 'Please input img!',
-                },
-              ]}
-            >
-              <Upload
-                // className="custom-upload"
-                maxCount={1}
-                accept=".png, .jpg, .jpeg"
-                listType="picture-card"
-                // showUploadList={false}
-                name='editForm-img'
-                customRequest={handleUploadImage}
-                // onChange={handleUpdateImage}
-                beforeUpload={beforeUpload}
-                fileList={fileList}
-                onPreview={onPreview}
+              <Form.Item // 排序
+                name="sorting"
+                label="排序"
+                rules={[
+                  {
+                    required: true,
+                    message: 'Please input sorting!',
+                  },
+                ]}
               >
-                {'+ Upload'}
-                {/* {uploadStatus === uploadStatusEnum.REMOVED ? (
-                  <>
-                    <div className={`${styles.footerContainer} ${uploadErrorRequired ? styles.error : ""}`}>
-                      <Image
-                        width={70}
-                        height={70}
-                        src={"/images/exchange/icon_upload.png"}
-                        preview={false}
-                      />
-                      <div className={styles.title}>{t("normal.uploadScreenshot")}</div>
-                    </div>
-                    <div className={`${styles.errorMessage} ${uploadErrorRequired ? styles.error : ""}`}>
-                      {t("deposit.errorImage")}
-                    </div>
-                  </>
-                ) : null} */}
-              </Upload>
-            </Form.Item>
+                <InputNumber
+                  style={{
+                    width: '100%',
+                  }}
+                />
+              </Form.Item>
 
-            <Form.Item // 超連結
-              name="url"
-              label="超連結"
-              rules={[
-                {
-                  required: true,
-                  message: 'Please input url!',
-                  whitespace: true,
-                },
-              ]}
+              <Form.Item // 名稱
+                name="name"
+                label="名稱"
+                rules={[
+                  {
+                    required: true,
+                    message: 'Please input name!',
+                    whitespace: true,
+                  },
+                ]}
+              >
+                <Input />
+              </Form.Item>
+
+              <Form.Item // 顯示位置
+                name="position"
+                label="顯示位置"
+                rules={[
+                  {
+                    required: true,
+                    message: 'Please select position!',
+                  },
+                ]}
+              >
+                <Select placeholder="請選擇">
+                  <Option value="1">前台首頁</Option>
+                </Select>
+              </Form.Item>
+
+              <Form.Item
+                name="img"
+                label="圖片"
+                valuePropName="fileList"
+                getValueFromEvent={normFile}
+                extra="图片格式限为.jpg/.png/.gif，图片须小于2M，图片最佳显示大小为：1600*586"
+                rules={[
+                  {
+                    required: true,
+                    message: 'Please input img!',
+                  },
+                ]}
+              >
+                <Upload
+                  // className="custom-upload"
+                  maxCount={1}
+                  accept=".png, .jpg, .jpeg"
+                  listType="picture-card"
+                  // showUploadList={false}
+                  name='createForm-img'
+                  customRequest={handleUploadImage}
+                  // onChange={handleUpdateImage}
+                  beforeUpload={beforeUpload}
+                  fileList={fileList}
+                  onPreview={onPreview}
+                >
+                  {'+ Upload'}
+                  {/* {uploadStatus === uploadStatusEnum.REMOVED ? (
+                    <>
+                      <div className={`${styles.footerContainer} ${uploadErrorRequired ? styles.error : ""}`}>
+                        <Image
+                          width={70}
+                          height={70}
+                          src={"/images/exchange/icon_upload.png"}
+                          preview={false}
+                        />
+                        <div className={styles.title}>{t("normal.uploadScreenshot")}</div>
+                      </div>
+                      <div className={`${styles.errorMessage} ${uploadErrorRequired ? styles.error : ""}`}>
+                        {t("deposit.errorImage")}
+                      </div>
+                    </>
+                  ) : null} */}
+                </Upload>
+              </Form.Item>
+
+              <Form.Item // 超連結
+                name="url"
+                label="超連結"
+                rules={[
+                  {
+                    required: true,
+                    message: 'Please input url!',
+                    whitespace: true,
+                  },
+                ]}
+              >
+                <Input />
+              </Form.Item>
+
+              <Form.Item 
+                name="start_time" 
+                label="開始時間"
+                rules={[
+                  {
+                    required: true,
+                    message: 'Please input start_time!',
+                  },
+                ]}>
+                <DatePicker showTime format="YYYY-MM-DD HH:mm:ss" placeholder="請選擇"/>
+              </Form.Item>
+
+              <Form.Item 
+                name="end_time" 
+                label="結束時間"
+                rules={[
+                  {
+                    required: true,
+                    message: 'Please input end_time!',
+                  },
+                ]}>
+                <DatePicker showTime format="YYYY-MM-DD HH:mm:ss" placeholder="請選擇"/>
+              </Form.Item>
+            </Form>
+          </Modal>
+          <Modal // 編輯
+            title="編輯"
+            open={openEditModal}
+            onCancel={() => setOpenEditModal(false)}
+            footer={
+              [
+              <Button form="editForm" onClick={() => setOpenEditModal(false)}>
+                  取消
+              </Button>
+              ,
+              <Button form="editForm" type='primary' htmlType="submit" loading={confirmLoading}>
+                  確認
+              </Button>
+              ]
+            }
+            className="banner-create-modal"
+            width={800}
+          >
+            <Form
+              {...formItemLayout}
+              form={editForm}
+              id="editForm"
+              name="editForm"
+              onFinish={handleEditModalOk}
+              layout="vertical"
+              style={{
+                maxWidth: 800,
+              }}
+              scrollToFirstError
+              className="banner-create-form"
             >
-              <Input />
-            </Form.Item>
+              <Form.Item // 排序
+                name="sorting"
+                label="排序"
+                rules={[
+                  {
+                    required: true,
+                    message: 'Please input sorting!',
+                  },
+                ]}
+              >
+                <InputNumber
+                  style={{
+                    width: '100%',
+                  }}
+                />
+              </Form.Item>
 
-            <Form.Item 
-              name="start_time" 
-              label="開始時間"
-              rules={[
-                {
-                  required: true,
-                  message: 'Please input start_time!',
-                },
-              ]}>
-              <DatePicker showTime format="YYYY-MM-DD HH:mm:ss" placeholder="請選擇" onChange={(value) => console.log(value)}/>
-            </Form.Item>
+              <Form.Item // 名稱
+                name="name"
+                label="名稱"
+                rules={[
+                  {
+                    required: true,
+                    message: 'Please input name!',
+                    whitespace: true,
+                  },
+                ]}
+              >
+                <Input />
+              </Form.Item>
 
-            <Form.Item 
-              name="end_time" 
-              label="結束時間"
-              rules={[
-                {
-                  required: true,
-                  message: 'Please input end_time!',
-                },
-              ]}>
-              <DatePicker showTime format="YYYY-MM-DD HH:mm:ss" placeholder="請選擇"/>
-            </Form.Item>
-          </Form>
-        </Modal>
+              <Form.Item // 顯示位置
+                name="position"
+                label="顯示位置"
+                rules={[
+                  {
+                    required: true,
+                    message: 'Please select position!',
+                  },
+                ]}
+              >
+                <Select placeholder="請選擇">
+                  <Option value="1">前台首頁</Option>
+                </Select>
+              </Form.Item>
+
+              <Form.Item
+                name="img"
+                label="圖片"
+                valuePropName="fileList"
+                getValueFromEvent={normFile}
+                extra="图片格式限为.jpg/.png/.gif，图片须小于2M，图片最佳显示大小为：1600*586"
+                rules={[
+                  {
+                    required: true,
+                    message: 'Please input img!',
+                  },
+                ]}
+              >
+                <Upload
+                  // className="custom-upload"
+                  maxCount={1}
+                  accept=".png, .jpg, .jpeg"
+                  listType="picture-card"
+                  // showUploadList={false}
+                  name='editForm-img'
+                  customRequest={handleUploadImage}
+                  // onChange={handleUpdateImage}
+                  beforeUpload={beforeUpload}
+                  fileList={fileList}
+                  onPreview={onPreview}
+                >
+                  {'+ Upload'}
+                  {/* {uploadStatus === uploadStatusEnum.REMOVED ? (
+                    <>
+                      <div className={`${styles.footerContainer} ${uploadErrorRequired ? styles.error : ""}`}>
+                        <Image
+                          width={70}
+                          height={70}
+                          src={"/images/exchange/icon_upload.png"}
+                          preview={false}
+                        />
+                        <div className={styles.title}>{t("normal.uploadScreenshot")}</div>
+                      </div>
+                      <div className={`${styles.errorMessage} ${uploadErrorRequired ? styles.error : ""}`}>
+                        {t("deposit.errorImage")}
+                      </div>
+                    </>
+                  ) : null} */}
+                </Upload>
+              </Form.Item>
+
+              <Form.Item // 超連結
+                name="url"
+                label="超連結"
+                rules={[
+                  {
+                    required: true,
+                    message: 'Please input url!',
+                    whitespace: true,
+                  },
+                ]}
+              >
+                <Input />
+              </Form.Item>
+
+              <Form.Item 
+                name="start_time" 
+                label="開始時間"
+                rules={[
+                  {
+                    required: true,
+                    message: 'Please input start_time!',
+                  },
+                ]}>
+                <DatePicker showTime format="YYYY-MM-DD HH:mm:ss" placeholder="請選擇" onChange={(value) => console.log(value)}/>
+              </Form.Item>
+
+              <Form.Item 
+                name="end_time" 
+                label="結束時間"
+                rules={[
+                  {
+                    required: true,
+                    message: 'Please input end_time!',
+                  },
+                ]}>
+                <DatePicker showTime format="YYYY-MM-DD HH:mm:ss" placeholder="請選擇"/>
+              </Form.Item>
+            </Form>
+          </Modal>
+        </>
       </div>
     </>
   )

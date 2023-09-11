@@ -39,14 +39,27 @@ export const getUsers = async (token) => {
   }
 }
 
-export const getBanners = async (token) => {
+export const getBanners = async (token, params) => {
+  let url = `${baseUrl}/BRL/banner?current=1&pageSize=20&sorter=%7B%7D&filter=%7B%7D&page=1&lang=zh`
+  if (params) {
+    let paramsArr = Object.entries(params)
+    for (const [key, value] of paramsArr) {
+      if (key === 'createDate') {
+        url += `&start_time=${value[0]}%2000%3A00%3A00&end_time=${value[1]}%2023%3A59%3A59`
+      } else if (key === 'startDate') {
+        url += `&show_start_date=${value[0]}%2000%3A00%3A00&show_end_time=${value[1]}%2023%3A59%3A59`
+      } else {
+        url += `&${key}=${value}`
+      }
+    }
+  }
+  
   try {
-    const res = await axios.get(`${baseUrl}/BRL/banner?current=1&pageSize=20&sorter=%7B%7D&filter=%7B%7D&page=1&lang=zh`, {
+    const res = await axios.get(url, {
       headers: {
         Authorization: 'bearer ' + token
       }
     })
-
     return res.data.data.data
   } catch (error) {
     console.error('[Get banners]', error)

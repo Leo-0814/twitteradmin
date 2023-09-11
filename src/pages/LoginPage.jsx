@@ -1,6 +1,6 @@
-import { useNavigate } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import AuthInput from '../component/AuthInput'
-import { AuthContainer, AuthTitle } from '../component/common/auth.styled'
+import { AuthContainer, AuthLinkContainer, AuthLinkText, AuthTitle } from '../component/common/auth.styled'
 import Button from '../component/Button'
 import { useEffect, useState } from 'react'
 import Swal from 'sweetalert2'
@@ -32,7 +32,7 @@ const LoginPage = () => {
           timer: 1000,
           position: 'top'
         })
-        navigate('/posts')
+        navigate('/banners')
         return
       }
     } catch (error) {
@@ -51,7 +51,7 @@ const LoginPage = () => {
       try {
         const res = await getUsers(adminToken)
         if (res) {
-          navigate('/posts')
+          navigate('/banners')
         }
       } catch (error) {
         console.log(error)
@@ -72,6 +72,11 @@ const LoginPage = () => {
         />
 
       <Button className='authBtn' onClick={handleClick}>登入</Button>
+      <AuthLinkContainer className='login-linkContainer'>
+        <Link to='https://leo-0814.github.io/twitter' target="_blank">
+          <AuthLinkText>前台登入</AuthLinkText>
+        </Link>
+      </AuthLinkContainer>
     </AuthContainer>
   )
 }

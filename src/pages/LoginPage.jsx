@@ -21,9 +21,9 @@ const LoginPage = () => {
     }
 
     try {
-      const token = await login({account, password, gcode})
-      if (token) {
-        localStorage.setItem('token', token)
+      const adminToken = await login({account, password, gcode})
+      if (adminToken) {
+        localStorage.setItem('adminToken', adminToken)
         Swal.fire({
           icon: 'success',
           title: '登入成功',
@@ -40,16 +40,16 @@ const LoginPage = () => {
     }
   }
 
-  // 判斷token是否生效
+  // 判斷adminToken是否生效
   useEffect(() => {
     const getUsersAsync = async () => {
-      const token = localStorage.getItem('token')
-      if (!token) {
+      const adminToken = localStorage.getItem('adminToken')
+      if (!adminToken) {
         return
       }
 
       try {
-        const res = await getUsers(token)
+        const res = await getUsers(adminToken)
         if (res) {
           navigate('/posts')
         }

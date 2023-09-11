@@ -28,20 +28,20 @@ const UserPage = () => {
   // 初始拿用戶列表
   useEffect(() => {
     const getUsersAsync = async () => {
-      const token = localStorage.getItem('token')
+      const adminToken = localStorage.getItem('adminToken')
 
-      if (!token) {
+      if (!adminToken) {
         navigate('/login')
         return
       }
 
       try {
-        const res = await getUsers(token)
+        const res = await getUsers(adminToken)
         
         if (res) {
           setUserList(res)
         } else {
-          localStorage.removeItem('token')
+          localStorage.removeItem('adminToken')
           navigate('/login')
         }
       } catch (error) {

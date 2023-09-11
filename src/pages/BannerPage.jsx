@@ -84,7 +84,7 @@ const BannerPage = ({
 
   // 上傳圖片
   const handleUploadImage = async (options) => {
-    const token = localStorage.getItem('token')
+    const adminToken = localStorage.getItem('adminToken')
     const form = new FormData();
     form.append("img", options.file);
     form.append("folder", `${filePath}`);
@@ -93,7 +93,7 @@ const BannerPage = ({
     try {
       const { filepath } = await uploadImg(
         { params: form },
-        token
+        adminToken
       );
       if (openCreateModal) {
         createForm.setFieldValue('img',[{
@@ -166,13 +166,13 @@ const BannerPage = ({
   // 點擊啟用/禁用確認
   const handleStatusModalOk = async () => {
     setConfirmLoading(true);
-    const token = localStorage.getItem('token')
+    const adminToken = localStorage.getItem('adminToken')
 
     try {
       if (bannerControlStatus === 0) {
-        await enableBanner(token, bannerControlId)
+        await enableBanner(adminToken, bannerControlId)
       } else if (bannerControlStatus === 1) {
-        await disableBanner(token, bannerControlId)
+        await disableBanner(adminToken, bannerControlId)
       }
     } catch (error) {
       console.log(error)
@@ -182,7 +182,7 @@ const BannerPage = ({
       setOpenStatus0Modal(false);
       setOpenStatus1Modal(false);
       setConfirmLoading(false);
-      const res = await getBanners(token)
+      const res = await getBanners(adminToken)
       setBannerList(res)
     }, 500);
   };
@@ -190,10 +190,10 @@ const BannerPage = ({
   //點擊刪除確認
   const handleDeleteModalOk = async () => {
     setConfirmLoading(true);
-    const token = localStorage.getItem('token')
+    const adminToken = localStorage.getItem('adminToken')
 
     try {
-      await deleteBanner(token, bannerControlId)
+      await deleteBanner(adminToken, bannerControlId)
     } catch (error) {
       console.log(error)
     }
@@ -201,20 +201,20 @@ const BannerPage = ({
     setTimeout(async () => {
       setOpenDeleteModal(false);
       setConfirmLoading(false);
-      const res = await getBanners(token)
+      const res = await getBanners(adminToken)
       setBannerList(res)
     }, 500);
   }
 
   //點擊新建確認
   const handleCreateModalOk = async (values) => {
-    const token = localStorage.getItem('token')
+    const adminToken = localStorage.getItem('adminToken')
     setConfirmLoading(true);
     try {
-      const res = await createBanner({token, ...values})
+      const res = await createBanner({adminToken, ...values})
 
       if (res === 1) {  
-        const res = await getBanners(token)
+        const res = await getBanners(adminToken)
         setBannerList(res)
       }
     } catch (error) {
@@ -223,20 +223,20 @@ const BannerPage = ({
     setTimeout(async () => {
       handleCancelCreateModal()
       setConfirmLoading(false);
-      const res = await getBanners(token)
+      const res = await getBanners(adminToken)
       setBannerList(res)
     }, 500);
   }
 
   // 點擊編輯確認
   const handleEditModalOk = async (values) => {
-    const token = localStorage.getItem('token')
+    const adminToken = localStorage.getItem('adminToken')
     setConfirmLoading(true);
     try {
-      const res = await editBanner({token, bannerControlId, ...values})
+      const res = await editBanner({adminToken, bannerControlId, ...values})
 
       if (res === 1) {  
-        const res = await getBanners(token)
+        const res = await getBanners(adminToken)
         setBannerList(res)
       }
     } catch (error) {
@@ -245,7 +245,7 @@ const BannerPage = ({
     setTimeout(async () => {
       setOpenEditModal(false);
       setConfirmLoading(false);
-      const res = await getBanners(token)
+      const res = await getBanners(adminToken)
       setBannerList(res)
     }, 500);
   }
@@ -253,20 +253,20 @@ const BannerPage = ({
   // 初始拿輪播列表
   useEffect(() => {
     const getBannersAsync = async () => {
-      const token = localStorage.getItem('token')
+      const adminToken = localStorage.getItem('adminToken')
 
-      if (!token) {
+      if (!adminToken) {
         navigate('/login')
         return
       }
 
       try {
-        const res = await getBanners(token)
+        const res = await getBanners(adminToken)
         
         if (res) {
           setBannerList(res)
         } else {
-          localStorage.removeItem('token')
+          localStorage.removeItem('adminToken')
           navigate('/login')
         }
       } catch (error) {

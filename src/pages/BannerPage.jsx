@@ -4,8 +4,11 @@ import LeftContainer from "../component/LeftContainer"
 import bannerActive from '../images/_base/bannerActive.png'
 import { useNavigate } from "react-router-dom"
 import { createBanner, deleteBanner, disableBanner, editBanner, enableBanner, getBanners, uploadImg } from "../api/admin"
-import { Button, Form, Input,  InputNumber, Select, Modal, DatePicker, Upload } from "antd"
+import { Button, Form, Input,  InputNumber, Select, Modal, DatePicker, Upload, Tooltip, Badge, Space } from "antd"
 import dayjs from "dayjs"
+import { ProCard, ProTable } from "@ant-design/pro-components"
+import { QuestionCircleOutlined } from "@ant-design/icons";
+import { tranTime } from "../component/common/time"
 
 const BannerPage = ({
   filePath='imgs/fundding',
@@ -23,6 +26,7 @@ const BannerPage = ({
   const [ searchLoading, setSearchLoading ] = useState(false);
   const [ fileList, setFileList ] = useState([]);
   const [ current, setCurrent ] = useState(1)
+  const [ bannerPreList, setBannerPreList ] = useState([])
   const { Option } = Select;
   const [ createForm ] = Form.useForm()
   const [ editForm ] = Form.useForm()
@@ -44,6 +48,100 @@ const BannerPage = ({
       },
     },
   };
+  const columns = [
+    {
+      title: '排序',
+      dataIndex: 'sorting',
+      key: 'sorting',
+      width: 60,
+    },
+    {
+      title: '名稱',
+      dataIndex: 'name',
+      key: 'name',
+      width: 130,
+    },
+    {
+      title: '顯示位置',
+      dataIndex: 'position',
+      key: 'position',
+      width: 100,
+      render: (position) => {
+        if (position === 1) {
+          return (
+            <span>前台首頁</span>
+          )
+        }
+      }
+    },
+    {
+      title: '創建時間',
+      dataIndex: 'created_at',
+      key: 'created_at',
+      width: 200,
+    },
+    {
+      title: '創建人',
+      dataIndex: 'creator',
+      key: 'creator',
+      width: 130,
+    },
+    {
+      title: '狀態',
+      dataIndex: 'status',
+      key: 'status',
+      render: (status) => {
+        if (status === 1) {
+          return (
+            <Badge status="success" text="啟用" />
+          )
+        } else if (status === 0) {
+          return (
+            <Badge status="error" text="禁用" />
+          )
+        }
+      },
+      width: 100,
+    },
+    {
+      title: '圖片',
+      dataIndex: 'img',
+      key: 'img',
+      width: 230,
+      render: (img) => <img src={img} alt="img" className="banner-table-img"/>
+    },
+    {
+      title: '超連結',
+      dataIndex: 'url',
+      key: 'url',
+      render: (text) => <a href={text} target="_blank" rel="noreferrer">{text}</a>,
+      width: 200,
+    },
+    {
+      title: '開始時間',
+      dataIndex: 'start_time',
+      key: 'start_time',
+      width: 200,
+    },
+    {
+      title: '結束時間',
+      dataIndex: 'end_time',
+      key: 'end_time',
+      width: 200,
+    },
+    {
+      title: '操作',
+      dataIndex: 'status',
+      key: 'action',
+      fixed: 'right',
+      render: (status, record) => (
+        <Space size="middle">
+          
+        </Space>
+      ),
+      width: 180,
+    },
+  ];
 
   const normFile = (e) => {
     if (Array.isArray(e)) {
@@ -243,6 +341,32 @@ const BannerPage = ({
     }
   }
 
+  // 點擊新建添加
+  const handleCreateModalAdd = (values) => {
+    console.log(values)
+    if (values.name && values.sorting) {
+      values.end_time = tranTime(values.end_time)
+      values.start_time = tranTime(values.start_time)
+    
+      setBannerPreList((preProp) => {
+        return ([
+          ...preProp,
+          {
+            position: values.position = '前台首頁'? 1: 2,
+            end_time: values.end_time,
+            start_time: values.start_time,
+            img: values.img[0].path,
+            name: values.name,
+            sorting: values.sorting,
+            url: values.url,
+            type: 1,
+          }
+        ])
+      })
+      console.log(bannerPreList)
+    }
+  }
+
   // 點擊編輯確認
   const handleEditModalOk = async (values) => {
     const adminToken = localStorage.getItem('adminToken')
@@ -318,7 +442,6 @@ const BannerPage = ({
         const res = await getBanners(adminToken)
         
         if (res) {
-          console.log(res)
           setBannerList(res)
           setSearchLoading(false)
         }
@@ -375,172 +498,184 @@ const BannerPage = ({
             title="新建"
             open={openCreateModal}
             onCancel={handleCancelCreateModal}
-            footer={
-              [
-              <Button form="createForm" onClick={handleCancelCreateModal}>
-                  取消
-              </Button>
-              ,
-              <Button form="createForm" type='primary' htmlType="submit" loading={confirmLoading}>
-                  確認
-              </Button>
-              ]
-            }
+            // footer={
+            //   [
+            //   <Button form="createForm" onClick={handleCancelCreateModal}>
+            //       取消
+            //   </Button>
+            //   ,
+            //   <Button form="createForm" type='primary' htmlType="submit" loading={confirmLoading}>
+            //       確認
+            //   </Button>
+            //   ]
+            // }
             className="banner-create-modal"
-            width={800}
+            width={1100}
           >
-            <Form
-              {...formItemLayout}
-              form={createForm}
-              id="createForm"
-              name="createForm"
-              onFinish={handleCreateModalOk}
-              layout="vertical"
-              style={{
-                maxWidth: 800,
-              }}
-              scrollToFirstError
-              className="banner-create-form"
-              initialValues={{
-                sorting: '',
-                name: '',
-                url: '',
-                position: '',
-                start_time: '',
-                end_time: '',
-                img: []
-              }}
+            <ProCard
+              split='vertical'
+              bordered
             >
-              <Form.Item // 排序
-                name="sorting"
-                label="排序"
-                rules={[
-                  {
-                    required: true,
-                    message: 'Please input sorting!',
-                  },
-                ]}
-              >
-                <InputNumber
-                  style={{
-                    width: '100%',
-                  }}
-                />
-              </Form.Item>
+              <ProCard colSpan="40%">
+                <div>
+                  <Form
+                    {...formItemLayout}
+                    form={createForm}
+                    id="createForm"
+                    name="createForm"
+                    onFinish={handleCreateModalAdd}
+                    layout="vertical"
+                    scrollToFirstError
+                    className="banner-create-form"
+                    initialValues={{
+                      sorting: '',
+                      name: '',
+                      url: '',
+                      position: '',
+                      start_time: '',
+                      end_time: '',
+                      img: []
+                    }}
+                  >
+                    <Form.Item // 排序
+                      name="sorting"
+                      label="排序"
+                      rules={[
+                        {
+                          required: true,
+                          message: 'Please input sorting!',
+                        },
+                      ]}
+                    >
+                      <InputNumber
+                        style={{
+                          width: '100%',
+                        }}
+                      />
+                    </Form.Item>
 
-              <Form.Item // 名稱
-                name="name"
-                label="名稱"
-                rules={[
-                  {
-                    required: true,
-                    message: 'Please input name!',
-                    whitespace: true,
-                  },
-                ]}
-              >
-                <Input />
-              </Form.Item>
+                    <Form.Item // 名稱
+                      name="name"
+                      label="名稱"
+                      rules={[
+                        {
+                          required: true,
+                          message: 'Please input name!',
+                          whitespace: true,
+                        },
+                      ]}
+                    >
+                      <Input />
+                    </Form.Item>
 
-              <Form.Item // 顯示位置
-                name="position"
-                label="顯示位置"
-                rules={[
-                  {
-                    required: true,
-                    message: 'Please select position!',
-                  },
-                ]}
-              >
-                <Select placeholder="請選擇">
-                  <Option value="1">前台首頁</Option>
-                </Select>
-              </Form.Item>
+                    <Form.Item // 顯示位置
+                      name="position"
+                      label="顯示位置"
+                      rules={[
+                        {
+                          required: true,
+                          message: 'Please select position!',
+                        },
+                      ]}
+                    >
+                      <Select placeholder="請選擇">
+                        <Option value="1">前台首頁</Option>
+                      </Select>
+                    </Form.Item>
 
-              <Form.Item
-                name="img"
-                label="圖片"
-                valuePropName="fileList"
-                getValueFromEvent={normFile}
-                extra="图片格式限为.jpg/.png/.gif，图片须小于2M，图片最佳显示大小为：1600*586"
-                rules={[
-                  {
-                    required: true,
-                    message: 'Please input img!',
-                  },
-                ]}
-              >
-                <Upload
-                  // className="custom-upload"
-                  maxCount={1}
-                  accept=".png, .jpg, .jpeg"
-                  listType="picture-card"
-                  // showUploadList={false}
-                  name='createForm-img'
-                  customRequest={handleUploadImage}
-                  // onChange={handleUpdateImage}
-                  beforeUpload={beforeUpload}
-                  fileList={fileList}
-                  onPreview={onPreview}
-                >
-                  {'+ Upload'}
-                  {/* {uploadStatus === uploadStatusEnum.REMOVED ? (
-                    <>
-                      <div className={`${styles.footerContainer} ${uploadErrorRequired ? styles.error : ""}`}>
-                        <Image
-                          width={70}
-                          height={70}
-                          src={"/images/exchange/icon_upload.png"}
-                          preview={false}
-                        />
-                        <div className={styles.title}>{t("normal.uploadScreenshot")}</div>
-                      </div>
-                      <div className={`${styles.errorMessage} ${uploadErrorRequired ? styles.error : ""}`}>
-                        {t("deposit.errorImage")}
-                      </div>
-                    </>
-                  ) : null} */}
-                </Upload>
-              </Form.Item>
+                    <Form.Item
+                      name="img"
+                      label="圖片"
+                      valuePropName="fileList"
+                      getValueFromEvent={normFile}
+                      rules={[
+                        {
+                          required: true,
+                          message: 'Please input img!',
+                        },
+                      ]}
+                    >
+                      <Upload
+                        // className="custom-upload"
+                        maxCount={1}
+                        accept=".png, .jpg, .jpeg"
+                        listType="picture-card"
+                        // showUploadList={false}
+                        name='createForm-img'
+                        customRequest={handleUploadImage}
+                        // onChange={handleUpdateImage}
+                        beforeUpload={beforeUpload}
+                        fileList={fileList}
+                        onPreview={onPreview}
+                      >
+                        {'+ Upload'}
+                        <Tooltip placement="top" title="图片格式限为.jpg/.png/.gif，图片须小于2M，图片最佳显示大小为：1600*586" className="create-modal-img-tooltip">
+                          <QuestionCircleOutlined />
+                        </Tooltip>
+                      </Upload>
+                    </Form.Item>
 
-              <Form.Item // 超連結
-                name="url"
-                label="超連結"
-                rules={[
-                  {
-                    required: true,
-                    message: 'Please input url!',
-                    whitespace: true,
-                  },
-                ]}
-              >
-                <Input />
-              </Form.Item>
+                    <Form.Item // 超連結
+                      name="url"
+                      label="超連結"
+                      rules={[
+                        {
+                          required: true,
+                          message: 'Please input url!',
+                          whitespace: true,
+                        },
+                      ]}
+                    >
+                      <Input />
+                    </Form.Item>
 
-              <Form.Item 
-                name="start_time" 
-                label="開始時間"
-                rules={[
-                  {
-                    required: true,
-                    message: 'Please input start_time!',
-                  },
-                ]}>
-                <DatePicker showTime format="YYYY-MM-DD HH:mm:ss" placeholder="請選擇"/>
-              </Form.Item>
+                    <Form.Item 
+                      name="start_time" 
+                      label="開始時間"
+                      rules={[
+                        {
+                          required: true,
+                          message: 'Please input start_time!',
+                        },
+                      ]}>
+                      <DatePicker showTime format="YYYY-MM-DD HH:mm:ss" placeholder="請選擇"/>
+                    </Form.Item>
 
-              <Form.Item 
-                name="end_time" 
-                label="結束時間"
-                rules={[
-                  {
-                    required: true,
-                    message: 'Please input end_time!',
-                  },
-                ]}>
-                <DatePicker showTime format="YYYY-MM-DD HH:mm:ss" placeholder="請選擇"/>
-              </Form.Item>
-            </Form>
+                    <Form.Item 
+                      name="end_time" 
+                      label="結束時間"
+                      rules={[
+                        {
+                          required: true,
+                          message: 'Please input end_time!',
+                        },
+                      ]}>
+                      <DatePicker showTime format="YYYY-MM-DD HH:mm:ss" placeholder="請選擇"/>
+                    </Form.Item>
+                    <Button type="primary" htmlType="submit" onClick={handleCreateModalAdd}>
+                      添加
+                    </Button>
+                  </Form>
+                </div>
+              </ProCard>
+              <ProCard className="create-modal-rightCard" style={{color: 'red'}}>
+                <div>
+                  <ProTable 
+                    // tableClassName="bannerContainer-banner-table"
+                    columns={columns}
+                    dataSource={bannerPreList}
+                    // loading={searchLoading}
+                    // defaultCollapsed= {false}
+                    search={false}
+                    // scroll={{
+                    //   x: 1200,
+                    // }}
+                    pagination={false}
+                  />
+                </div>
+              </ProCard>
+            </ProCard>
+            
           </Modal>
           <Modal // 編輯
             title="編輯"

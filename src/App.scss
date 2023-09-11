@@ -278,6 +278,29 @@ a:visited {
 }
 
 
+.banner-create-modal {
+  min-width: 800px;
+
+  .create-modal-img-tooltip {
+    position: absolute;
+    top: -25px;
+    left: 50px;
+  }
+
+  .create-modal-rightCard > div{
+    padding: 0;
+
+    .ant-pro-card-body {
+      padding: 0;
+
+      .ant-pro-table-list-toolbar {
+        display: none;
+      }
+    }
+  }
+}
+
+
 .ant-table-content {
   // position: absolute;
   //卷軸底部
@@ -303,8 +326,9 @@ a:visited {
 }
 
 .ant-form-item-extra {
-  position: absolute;
-  top: -30px;
-  left: 100px;
-  white-space: nowrap;
+  // position: absolute;
+  width: auto;
+  // top: -50px;
+  // left: 150px;
+  // white-space: nowrap;
 }

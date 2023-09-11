@@ -233,6 +233,24 @@ a:visited {
   padding: 0;
 }
 
+.banner-create-modal {
+  min-width: 800px;
+}
+.banner-create-modal .create-modal-img-tooltip {
+  position: absolute;
+  top: -25px;
+  left: 50px;
+}
+.banner-create-modal .create-modal-rightCard > div {
+  padding: 0;
+}
+.banner-create-modal .create-modal-rightCard > div .ant-pro-card-body {
+  padding: 0;
+}
+.banner-create-modal .create-modal-rightCard > div .ant-pro-card-body .ant-pro-table-list-toolbar {
+  display: none;
+}
+
 .ant-table-content::-webkit-scrollbar-track {
   background-color: rgb(240, 240, 240);
 }
@@ -249,8 +267,5 @@ a:visited {
 }
 
 .ant-form-item-extra {
-  position: absolute;
-  top: -30px;
-  left: 100px;
-  white-space: nowrap;
+  width: auto;
 }/*# sourceMappingURL=App.css.map */

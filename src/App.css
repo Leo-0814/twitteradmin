@@ -171,7 +171,6 @@ a:visited {
   background-color: rgb(161, 161, 161);
 }
 .mainContainer .bannerContainer {
-  overflow: hidden;
   border: 1px solid rgb(230, 236, 240);
   flex-direction: column;
   height: 100vh;
@@ -235,20 +234,41 @@ a:visited {
 
 .banner-create-modal {
   min-width: 800px;
+  top: 20px;
 }
-.banner-create-modal .create-modal-img-tooltip {
+.banner-create-modal .create-modal-proCard-container {
+  width: 100%;
+}
+.banner-create-modal .create-modal-proCard-container .ant-pro-card-body .ant-pro-card-col:not(:first-child) {
+  overflow: hidden;
+}
+.banner-create-modal .create-modal-proCard-container .ant-pro-card-body .create-modal-leftCard .create-modal-img-tooltip {
   position: absolute;
   top: -25px;
   left: 50px;
 }
-.banner-create-modal .create-modal-rightCard > div {
+.banner-create-modal .create-modal-proCard-container .ant-pro-card-body .create-modal-rightCard > div {
+  padding: 0;
+  width: 100%;
+  overflow: hidden;
+}
+.banner-create-modal .create-modal-proCard-container .ant-pro-card-body .create-modal-rightCard > div .ant-pro-card-body {
   padding: 0;
 }
-.banner-create-modal .create-modal-rightCard > div .ant-pro-card-body {
-  padding: 0;
-}
-.banner-create-modal .create-modal-rightCard > div .ant-pro-card-body .ant-pro-table-list-toolbar {
+.banner-create-modal .create-modal-proCard-container .ant-pro-card-body .create-modal-rightCard > div .ant-pro-card-body .ant-pro-table-list-toolbar {
   display: none;
+}
+.banner-create-modal .create-modal-proCard-container .ant-pro-card-body .create-modal-rightCard > div .ant-pro-card-body .rightCard-table {
+  width: 100%;
+}
+.banner-create-modal .create-modal-proCard-container .ant-pro-card-body .create-modal-rightCard > div .ant-pro-card-body .rightCard-table .create-modal-table-img {
+  width: auto;
+  max-width: 230px;
+  height: 80px;
+}
+.banner-create-modal .create-modal-proCard-container .ant-pro-card-body .create-modal-rightCard > div .ant-pro-card-body .rightCard-table .create-modal-table-icon {
+  color: rgb(52, 128, 243);
+  cursor: pointer;
 }
 
 .ant-table-content::-webkit-scrollbar-track {

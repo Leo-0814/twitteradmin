@@ -204,7 +204,6 @@ a:visited {
 
   // BannerContainer
   .bannerContainer {
-    overflow: hidden;
     border: 1px solid rgba(230, 236, 240, 1);
     flex-direction: column;
     height: 100vh;
@@ -280,21 +279,50 @@ a:visited {
 
 .banner-create-modal {
   min-width: 800px;
+  top: 20px;
 
-  .create-modal-img-tooltip {
-    position: absolute;
-    top: -25px;
-    left: 50px;
-  }
-
-  .create-modal-rightCard > div{
-    padding: 0;
+  .create-modal-proCard-container {
+    width: 100%;
 
     .ant-pro-card-body {
-      padding: 0;
+      .ant-pro-card-col:not(:first-child) {
+          overflow: hidden;
+        }
 
-      .ant-pro-table-list-toolbar {
-        display: none;
+      .create-modal-leftCard {
+        .create-modal-img-tooltip {
+          position: absolute;
+          top: -25px;
+          left: 50px;
+        }
+      }
+    
+      .create-modal-rightCard>div {
+        padding: 0;
+        width: 100%;
+        overflow: hidden;
+    
+        .ant-pro-card-body {
+          padding: 0;
+    
+          .ant-pro-table-list-toolbar {
+            display: none;
+          }
+    
+          .rightCard-table {
+            width: 100%;
+
+            .create-modal-table-img {
+              width: auto;
+              max-width: 230px;
+              height: 80px;
+            }
+            .create-modal-table-icon {
+              color: rgb(52, 128, 243);
+              cursor: pointer;
+            }
+          }
+        }
       }
     }
   }
@@ -302,7 +330,6 @@ a:visited {
 
 
 .ant-table-content {
-  // position: absolute;
   //卷軸底部
   &::-webkit-scrollbar-track {
     background-color: rgba(240, 240, 240, 1);

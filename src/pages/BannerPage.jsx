@@ -7,7 +7,7 @@ import { createBanner, deleteBanner, disableBanner, editBanner, enableBanner, ge
 import { Button, Form, Input,  InputNumber, Select, Modal, DatePicker, Upload, Tooltip, Badge, Space } from "antd"
 import dayjs from "dayjs"
 import { ProCard, ProTable } from "@ant-design/pro-components"
-import { QuestionCircleOutlined } from "@ant-design/icons";
+import { CopyOutlined, DeleteOutlined, QuestionCircleOutlined } from "@ant-design/icons";
 import { tranTime } from "../component/common/time"
 
 const BannerPage = ({
@@ -30,6 +30,7 @@ const BannerPage = ({
   const { Option } = Select;
   const [ createForm ] = Form.useForm()
   const [ editForm ] = Form.useForm()
+  let bannerId = 0
   const formItemLayout = {
     labelCol: {
       xs: {
@@ -75,40 +76,11 @@ const BannerPage = ({
       }
     },
     {
-      title: '創建時間',
-      dataIndex: 'created_at',
-      key: 'created_at',
-      width: 200,
-    },
-    {
-      title: '創建人',
-      dataIndex: 'creator',
-      key: 'creator',
-      width: 130,
-    },
-    {
-      title: '狀態',
-      dataIndex: 'status',
-      key: 'status',
-      render: (status) => {
-        if (status === 1) {
-          return (
-            <Badge status="success" text="啟用" />
-          )
-        } else if (status === 0) {
-          return (
-            <Badge status="error" text="禁用" />
-          )
-        }
-      },
-      width: 100,
-    },
-    {
       title: '圖片',
       dataIndex: 'img',
       key: 'img',
       width: 230,
-      render: (img) => <img src={img} alt="img" className="banner-table-img"/>
+      render: (img) => <img src={img} alt="img" className="create-modal-table-img"/>
     },
     {
       title: '超連結',
@@ -131,15 +103,16 @@ const BannerPage = ({
     },
     {
       title: '操作',
-      dataIndex: 'status',
+      dataIndex: 'id',
       key: 'action',
       fixed: 'right',
-      render: (status, record) => (
+      render: (id, record) => (
         <Space size="middle">
-          
+          <CopyOutlined className='create-modal-table-icon' onClick={handleCreateModalCopy}/>
+          <DeleteOutlined className='create-modal-table-icon' onClick={handleCreateModalDelete} />
         </Space>
       ),
-      width: 180,
+      width: 60,
     },
   ];
 
@@ -343,7 +316,6 @@ const BannerPage = ({
 
   // 點擊新建添加
   const handleCreateModalAdd = (values) => {
-    console.log(values)
     if (values.name && values.sorting) {
       values.end_time = tranTime(values.end_time)
       values.start_time = tranTime(values.start_time)
@@ -352,10 +324,11 @@ const BannerPage = ({
         return ([
           ...preProp,
           {
+            id: bannerId,
             position: values.position = '前台首頁'? 1: 2,
             end_time: values.end_time,
             start_time: values.start_time,
-            img: values.img[0].path,
+            img: values.img[0].url,
             name: values.name,
             sorting: values.sorting,
             url: values.url,
@@ -363,8 +336,29 @@ const BannerPage = ({
           }
         ])
       })
-      console.log(bannerPreList)
+      bannerId += 1
     }
+  }
+
+  // 點擊新建複製
+  const handleCreateModalCopy = () => {
+    console.log(bannerPreList)
+    createForm.setFieldsValue({
+      // sorting: targetBanner[0].sorting,
+      // name: targetBanner[0].name,
+      // url: targetBanner[0].url,
+      // position: targetBanner[0].position === 1 ? '前台首頁' : targetBanner[0].position,
+      // start_time: dayjs(targetBanner[0].start_time),
+      // end_time: dayjs(targetBanner[0].end_time),
+      // img: [{
+      //   url: targetBanner[0].img,
+      // }],
+    })
+  }
+
+  // 點擊新建刪除
+  const handleCreateModalDelete = () => {
+
   }
 
   // 點擊編輯確認
@@ -515,8 +509,9 @@ const BannerPage = ({
             <ProCard
               split='vertical'
               bordered
+              className='create-modal-proCard-container'
             >
-              <ProCard colSpan="40%">
+              <ProCard colSpan="40%" className='create-modal-leftCard'>
                 <div>
                   <Form
                     {...formItemLayout}
@@ -661,15 +656,14 @@ const BannerPage = ({
               <ProCard className="create-modal-rightCard" style={{color: 'red'}}>
                 <div>
                   <ProTable 
-                    // tableClassName="bannerContainer-banner-table"
+                    tableClassName="rightCard-table"
                     columns={columns}
                     dataSource={bannerPreList}
                     // loading={searchLoading}
-                    // defaultCollapsed= {false}
                     search={false}
-                    // scroll={{
-                    //   x: 1200,
-                    // }}
+                    scroll={{
+                      x: 1200,
+                    }}
                     pagination={false}
                   />
                 </div>

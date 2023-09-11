@@ -143,6 +143,7 @@ const BannerContainer = ({ bannerList, showStatusModal, showDeleteModal,showCrea
           loading={searchLoading}
           defaultCollapsed= {false}
           search={false}
+          sticky={true}
           scroll={{
             x: 1200,
           }}

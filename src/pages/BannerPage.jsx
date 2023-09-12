@@ -4,7 +4,7 @@ import LeftContainer from "../component/LeftContainer"
 import bannerActive from '../images/_base/bannerActive.png'
 import { useNavigate } from "react-router-dom"
 import { createBanner, deleteBanner, disableBanner, editBanner, enableBanner, getBanners, uploadImg } from "../api/admin"
-import { Button, Form, Input,  InputNumber, Select, Modal, DatePicker, Upload, Tooltip, Badge, Space } from "antd"
+import { Button, Form, Input,  InputNumber, Select, Modal, DatePicker, Upload, Tooltip, Space } from "antd"
 import dayjs from "dayjs"
 import { ProCard, ProTable } from "@ant-design/pro-components"
 import { CopyOutlined, DeleteOutlined, QuestionCircleOutlined } from "@ant-design/icons";
@@ -26,11 +26,14 @@ const BannerPage = ({
   const [ searchLoading, setSearchLoading ] = useState(false);
   const [ fileList, setFileList ] = useState([]);
   const [ current, setCurrent ] = useState(1)
+  const [ pageSize, setPageSize ] = useState(10)
   const [ bannerPreList, setBannerPreList ] = useState([])
+  const [ bannerPreControlId, setBannerPreControlId ] = useState(0)
+  const [ bannerTotal, setBannerTotal ] = useState()
+  const [ params, setParams ] = useState({})
   const { Option } = Select;
   const [ createForm ] = Form.useForm()
   const [ editForm ] = Form.useForm()
-  let bannerId = 0
   const formItemLayout = {
     labelCol: {
       xs: {
@@ -80,7 +83,7 @@ const BannerPage = ({
       dataIndex: 'img',
       key: 'img',
       width: 230,
-      render: (img) => <img src={img} alt="img" className="create-modal-table-img"/>
+      render: (img) => <img src={img.url} alt="img" className="create-modal-table-img"/>
     },
     {
       title: '超連結',
@@ -108,8 +111,8 @@ const BannerPage = ({
       fixed: 'right',
       render: (id, record) => (
         <Space size="middle">
-          <CopyOutlined className='create-modal-table-icon' onClick={handleCreateModalCopy}/>
-          <DeleteOutlined className='create-modal-table-icon' onClick={handleCreateModalDelete} />
+          <CopyOutlined className='create-modal-table-icon' onClick={() => handleCreateModalCopy(id)}/>
+          <DeleteOutlined className='create-modal-table-icon' onClick={() => handleCreateModalDelete(id)} />
         </Space>
       ),
       width: 60,
@@ -192,6 +195,8 @@ const BannerPage = ({
   const handleCancelCreateModal = () => {
     setOpenCreateModal(false)
     createForm.resetFields(['sorting', 'name', 'url', 'position', 'start_time', 'end_time', 'img'])
+    setBannerPreControlId(0)
+    setBannerPreList([])
   }
 
   // 顯示啟用/禁用modal
@@ -255,10 +260,17 @@ const BannerPage = ({
 
     setTimeout(async () => {
       setSearchLoading(true)
-      const res = await getBanners(adminToken)
+      let { data, total } = await getBanners(adminToken, current, pageSize, params)
+      setBannerTotal(total)
+      data = data.map(banner => {
+        return ({
+          ...banner,
+          key: banner.id
+        })
+      })
 
-      if (res) {
-        setBannerList(res)
+      if (data) {
+        setBannerList(data)
         setSearchLoading(false)
       }
     }, 0)
@@ -279,33 +291,52 @@ const BannerPage = ({
 
     setTimeout(async () => {
       setSearchLoading(true)
-      const res = await getBanners(adminToken)
+      let { data, total } = await getBanners(adminToken, current, pageSize, params)
+      setBannerTotal(total)
+      data = data.map(banner => {
+        return ({
+          ...banner,
+          key: banner.id
+        })
+      })
 
-      if (res) {
-        setBannerList(res)
+      if (data) {
+        setBannerList(data)
         setSearchLoading(false)
       }
     }, 0)
   }
 
   //點擊新建確認
-  const handleCreateModalOk = async (values) => {
+  const handleCreateModalOk = () => {
+    if (bannerPreList.length === 0) {
+      return
+    }
+
     const adminToken = localStorage.getItem('adminToken')
     setConfirmLoading(true);
     try {
-      const res = await createBanner({adminToken, ...values})
+      bannerPreList.forEach(async (banner) => {
+        await createBanner({adminToken, banner})
+      })
 
-      if (res) {
-        handleCancelCreateModal()
-        setConfirmLoading(false);
-      }
+      handleCancelCreateModal()
+      setConfirmLoading(false);
+      setCurrent(1)
 
       setTimeout(async () => {
         setSearchLoading(true)
-        const res = await getBanners(adminToken)
-
-        if (res) {
-          setBannerList(res)
+        let { data, total } = await getBanners(adminToken, current, pageSize, params)
+        setBannerTotal(total)
+        data = data.map(banner => {
+          return ({
+            ...banner,
+            key: banner.id
+          })
+        })
+        
+        if (data) {
+          setBannerList(data)
           setSearchLoading(false)
         }
       }, 0)
@@ -324,11 +355,12 @@ const BannerPage = ({
         return ([
           ...preProp,
           {
-            id: bannerId,
+            key: bannerPreControlId,
+            id: bannerPreControlId,
             position: values.position = '前台首頁'? 1: 2,
             end_time: values.end_time,
             start_time: values.start_time,
-            img: values.img[0].url,
+            img: values.img[0],
             name: values.name,
             sorting: values.sorting,
             url: values.url,
@@ -336,29 +368,29 @@ const BannerPage = ({
           }
         ])
       })
-      bannerId += 1
+      setBannerPreControlId(id => id += 1)
+      createForm.resetFields(['sorting', 'name', 'url', 'position', 'start_time', 'end_time', 'img'])
     }
   }
 
   // 點擊新建複製
-  const handleCreateModalCopy = () => {
-    console.log(bannerPreList)
+  const handleCreateModalCopy = (id) => {
+    let targetBanner = bannerPreList.filter(banner => banner.id === id)
     createForm.setFieldsValue({
-      // sorting: targetBanner[0].sorting,
-      // name: targetBanner[0].name,
-      // url: targetBanner[0].url,
-      // position: targetBanner[0].position === 1 ? '前台首頁' : targetBanner[0].position,
-      // start_time: dayjs(targetBanner[0].start_time),
-      // end_time: dayjs(targetBanner[0].end_time),
-      // img: [{
-      //   url: targetBanner[0].img,
-      // }],
+      sorting: targetBanner[0].sorting,
+      name: targetBanner[0].name,
+      url: targetBanner[0].url,
+      position: targetBanner[0].position === 1 ? '前台首頁' : targetBanner[0].position,
+      start_time: dayjs(targetBanner[0].start_time),
+      end_time: dayjs(targetBanner[0].end_time),
+      img: [targetBanner[0].img],
     })
   }
 
   // 點擊新建刪除
-  const handleCreateModalDelete = () => {
-
+  const handleCreateModalDelete = (id) => {
+    let targetBanner = bannerPreList.filter(banner => banner.id !== id)
+    setBannerPreList(targetBanner)
   }
 
   // 點擊編輯確認
@@ -375,10 +407,17 @@ const BannerPage = ({
 
       setTimeout(async () => {
         setSearchLoading(true)
-        const res = await getBanners(adminToken)
-
-        if (res) {
-          setBannerList(res)
+        let { data, total } = await getBanners(adminToken, current, pageSize, params)
+        setBannerTotal(total)
+        data = data.map(banner => {
+          return ({
+            ...banner,
+            key: banner.id
+          })
+        })
+        
+        if (data) {
+          setBannerList(data)
           setSearchLoading(false)
         }
       }, 0)
@@ -392,10 +431,44 @@ const BannerPage = ({
     const adminToken = localStorage.getItem('adminToken')
     setSearchLoading(true)
     try {
-      const res = await getBanners(adminToken, params)
+      let { data, total } = await getBanners(adminToken, 1, pageSize, params)
+      setBannerTotal(total)
+      data = data.map(banner => {
+        return ({
+          ...banner,
+          key: banner.id
+        })
+      })
       
-      if (res) {
-        setBannerList(res)
+      if (data) {
+        setBannerList(data)
+        setSearchLoading(false)
+        setCurrent(1)
+        setParams(params)
+      }
+    } catch (error) {
+      console.log(error)
+    }
+  }
+
+  // 點擊搜尋欄位重置按鈕
+  const handleClickReset = async () => {
+    const adminToken = localStorage.getItem('adminToken')
+    setSearchLoading(true)
+    setParams({})
+
+    try {
+      let { data, total } = await getBanners(adminToken, 1, pageSize)
+      setBannerTotal(total)
+      data = data.map(banner => {
+        return ({
+          ...banner,
+          key: banner.id
+        })
+      })
+      
+      if (data) {
+        setBannerList(data)
         setSearchLoading(false)
         setCurrent(1)
       }
@@ -404,18 +477,25 @@ const BannerPage = ({
     }
   }
 
-  // 點擊搜尋欄位重置按鈕
-  const onClickReset = async () => {
+  // 切換頁面
+  const handleChangePage = async (page, size) => {
     const adminToken = localStorage.getItem('adminToken')
     setSearchLoading(true)
-
+    setCurrent(page)
+    setPageSize(size)
     try {
-      const res = await getBanners(adminToken)
-      
-      if (res) {
-        setBannerList(res)
+      let { data, total } = await getBanners(adminToken, page, size, params)
+      setBannerTotal(total)
+      data = data.map(banner => {
+        return ({
+          ...banner,
+          key: banner.id
+        })
+      })
+
+      if (data) {
+        setBannerList(data)
         setSearchLoading(false)
-        setCurrent(1)
       }
     } catch (error) {
       console.log(error)
@@ -433,10 +513,17 @@ const BannerPage = ({
       }
 
       try {
-        const res = await getBanners(adminToken)
-        
-        if (res) {
-          setBannerList(res)
+        let { data, total } = await getBanners(adminToken, current, pageSize)
+        setBannerTotal(total)
+        data = data.map(banner => {
+          return ({
+            ...banner,
+            key: banner.id
+          })
+        })
+
+        if (data) {
+          setBannerList(data)
           setSearchLoading(false)
         }
       } catch (error) {
@@ -451,7 +538,7 @@ const BannerPage = ({
       <div className="mainContainer">
         <LeftContainer banner={bannerActive}></LeftContainer>
 
-        <BannerContainer bannerList={bannerList} showStatusModal={handleShowStatusModal} showDeleteModal={handleShowDeleteModal} showCreateModal={handleShowCreateModal} showEditModal={handleShowEditModal} bannerCount={bannerList.length} onClickSearch={handleClickSearch} onClickReset={onClickReset} confirmLoading={confirmLoading} searchLoading={searchLoading} current={current} onChangePage={(page) => setCurrent(page)}></BannerContainer>
+        <BannerContainer bannerList={bannerList} showStatusModal={handleShowStatusModal} showDeleteModal={handleShowDeleteModal} showCreateModal={handleShowCreateModal} showEditModal={handleShowEditModal} bannerCount={bannerList.length} onClickSearch={handleClickSearch} onClickReset={handleClickReset} confirmLoading={confirmLoading} searchLoading={searchLoading} current={current} onChangePage={handleChangePage} bannerTotal={bannerTotal} pageSize={pageSize}></BannerContainer>
         
         {/* Modal */}
         <>  
@@ -492,17 +579,17 @@ const BannerPage = ({
             title="新建"
             open={openCreateModal}
             onCancel={handleCancelCreateModal}
-            // footer={
-            //   [
-            //   <Button form="createForm" onClick={handleCancelCreateModal}>
-            //       取消
-            //   </Button>
-            //   ,
-            //   <Button form="createForm" type='primary' htmlType="submit" loading={confirmLoading}>
-            //       確認
-            //   </Button>
-            //   ]
-            // }
+            footer={
+              [
+              <Button key='0' form="createForm" onClick={handleCancelCreateModal}>
+                  取消
+              </Button>
+              ,
+              <Button key='1' type='primary' htmlType="submit" loading={confirmLoading} onClick={handleCreateModalOk}>
+                  確認
+              </Button>
+              ]
+            }
             className="banner-create-modal"
             width={1100}
           >
@@ -653,14 +740,14 @@ const BannerPage = ({
                   </Form>
                 </div>
               </ProCard>
-              <ProCard className="create-modal-rightCard" style={{color: 'red'}}>
+              <ProCard className="create-modal-rightCard">
                 <div>
                   <ProTable 
                     tableClassName="rightCard-table"
                     columns={columns}
                     dataSource={bannerPreList}
-                    // loading={searchLoading}
                     search={false}
+                    sticky={true}
                     scroll={{
                       x: 1200,
                     }}
@@ -669,7 +756,6 @@ const BannerPage = ({
                 </div>
               </ProCard>
             </ProCard>
-            
           </Modal>
           <Modal // 編輯
             title="編輯"
@@ -677,11 +763,11 @@ const BannerPage = ({
             onCancel={() => setOpenEditModal(false)}
             footer={
               [
-              <Button form="editForm" onClick={() => setOpenEditModal(false)}>
+              <Button key='0' form="editForm" onClick={() => setOpenEditModal(false)}>
                   取消
               </Button>
               ,
-              <Button form="editForm" type='primary' htmlType="submit" loading={confirmLoading}>
+              <Button key='1' form="editForm" type='primary' htmlType="submit" loading={confirmLoading}>
                   確認
               </Button>
               ]
@@ -775,22 +861,6 @@ const BannerPage = ({
                   onPreview={onPreview}
                 >
                   {'+ Upload'}
-                  {/* {uploadStatus === uploadStatusEnum.REMOVED ? (
-                    <>
-                      <div className={`${styles.footerContainer} ${uploadErrorRequired ? styles.error : ""}`}>
-                        <Image
-                          width={70}
-                          height={70}
-                          src={"/images/exchange/icon_upload.png"}
-                          preview={false}
-                        />
-                        <div className={styles.title}>{t("normal.uploadScreenshot")}</div>
-                      </div>
-                      <div className={`${styles.errorMessage} ${uploadErrorRequired ? styles.error : ""}`}>
-                        {t("deposit.errorImage")}
-                      </div>
-                    </>
-                  ) : null} */}
                 </Upload>
               </Form.Item>
 

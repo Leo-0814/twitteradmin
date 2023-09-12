@@ -1,7 +1,8 @@
+import { PlusOutlined } from "@ant-design/icons";
 import { ProFormDateRangePicker, ProFormSelect, ProFormText, ProTable, QueryFilter } from "@ant-design/pro-components";
 import { Badge, Button, Space } from "antd"
 
-const BannerContainer = ({ bannerList, showStatusModal, showDeleteModal,showCreateModal, showEditModal, bannerCount, onClickSearch, onClickReset, searchLoading, current, onChangePage }) => {
+const BannerContainer = ({ bannerList, showStatusModal, showDeleteModal,showCreateModal, showEditModal, bannerCount, onClickSearch, onClickReset, searchLoading, current, onChangePage, bannerTotal, pageSize }) => {
   const columns = [
   {
     title: '排序',
@@ -13,6 +14,7 @@ const BannerContainer = ({ bannerList, showStatusModal, showDeleteModal,showCrea
     title: '名稱',
     dataIndex: 'name',
     key: 'name',
+    ellipsis: true,
     width: 130,
   },
   {
@@ -43,6 +45,7 @@ const BannerContainer = ({ bannerList, showStatusModal, showDeleteModal,showCrea
   {
     title: '狀態',
     dataIndex: 'status',
+    sorter: true,
     key: 'status',
     render: (status) => {
       if (status === 1) {
@@ -75,12 +78,14 @@ const BannerContainer = ({ bannerList, showStatusModal, showDeleteModal,showCrea
     title: '開始時間',
     dataIndex: 'start_time',
     key: 'start_time',
+    sorter: true,
     width: 200,
   },
   {
     title: '結束時間',
     dataIndex: 'end_time',
     key: 'end_time',
+    sorter: true,
     width: 200,
   },
   {
@@ -101,13 +106,14 @@ const BannerContainer = ({ bannerList, showStatusModal, showDeleteModal,showCrea
     width: 180,
   },
 ];
-  
 
   return (
     <div className="bannerContainer">
       <div className="bannerContainer-header">
           <div className="header-content">輪播圖設置</div>
       </div>
+
+      {/* 搜尋欄位 */}
       <div className="bannerContainer-search">
         <QueryFilter 
           defaultCollapsed={false} 
@@ -135,32 +141,49 @@ const BannerContainer = ({ bannerList, showStatusModal, showDeleteModal,showCrea
           <ProFormDateRangePicker name="startDate" label="顯示時間" />
         </QueryFilter>
       </div>
+
+      {/* 表格 */}
       <div className='bannerContainer-banner'>
         <ProTable 
           tableClassName="bannerContainer-banner-table"
           columns={columns}
           dataSource={bannerList}
+          request={ (params, sort, filter) => {
+            console.log(params, sort, filter);
+            return {
+              data: bannerList,
+              success: true,
+            }
+          }}
           loading={searchLoading}
           defaultCollapsed= {false}
           search={false}
           sticky={true}
+          toolBarRender={() => [
+            <Button
+              key="button"
+              icon={<PlusOutlined />}
+              onClick={() => {
+                showCreateModal?.();
+              }}
+              type="primary"
+            >
+              新建
+            </Button>
+          ]}
           scroll={{
             x: 1200,
           }}
           pagination={{
             current: current,
-            onChange: (page => onChangePage?.(page)),
-            total: {bannerCount},
-            showTotal: (total, range) => `第${range[0]}到${range[1]}條，總共${total}條`,
-            defaultPageSize: 10,
+            onChange: ((page,pageSize) => onChangePage?.(page, pageSize)),
+            total: bannerTotal,
+            defaultPageSize: pageSize,
             defaultCurrent: 1,
             showSizeChanger: true,
             size: 'small',
           }}
         />
-        <Button type='primary' onClick={() => showCreateModal?.()} className="bannerContainer-banner-create">
-          新建
-        </Button>
       </div>
     </div>
   )

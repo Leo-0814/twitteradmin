@@ -8,10 +8,10 @@ export const login = async({account, password, gcode}) => {
   try {
     const res = await axios.post(`${baseUrl}/admin/login`, {account, password, gcode})
 
-    const token = res.data.data.token
+    const adminToken = res.data.data.token
     
-    if(token) {
-      return token
+    if(adminToken) {
+      return adminToken
     }
 
   } catch (error) {
@@ -25,11 +25,11 @@ export const login = async({account, password, gcode}) => {
   }
 }
 
-export const getUsers = async (token) => {
+export const getUsers = async (adminToken) => {
   try {
     const res = await axios.get(`${baseUrl}/BRL/user/list?current=1&pageSize=11&slow_query_status=0&sorter=%7B%7D&filter=%7B%7D&page_size=11&page=1&lang=zh`, {
       headers: {
-        Authorization: 'bearer ' + token
+        Authorization: 'bearer ' + adminToken
       }
     })
 
@@ -39,8 +39,8 @@ export const getUsers = async (token) => {
   }
 }
 
-export const getBanners = async (token, params) => {
-  let url = `${baseUrl}/BRL/banner?current=1&pageSize=20&sorter=%7B%7D&filter=%7B%7D&page=1&lang=zh`
+export const getBanners = async (adminToken, current, pageSize, params) => {
+  let url = `${baseUrl}/BRL/banner?current=${current}&pageSize=${pageSize}&sorter=%7B%7D&filter=%7B%7D&page=${current}&lang=zh`
   if (params) {
     let paramsArr = Object.entries(params)
     for (const [key, value] of paramsArr) {
@@ -57,10 +57,10 @@ export const getBanners = async (token, params) => {
   try {
     const res = await axios.get(url, {
       headers: {
-        Authorization: 'bearer ' + token
+        Authorization: 'bearer ' + adminToken
       }
     })
-    return res.data.data.data
+    return res.data.data
   } catch (error) {
     console.error('[Get banners]', error)
   }
@@ -82,13 +82,13 @@ export const disableBanner = async (token, bannerId) => {
   }
 }
 
-export const enableBanner = async (token, bannerId) => {
+export const enableBanner = async (adminToken, bannerId) => {
   try {
     const res = await axios({
       method: 'put',
       url: `${baseUrl}/BRL/banner/${bannerId}/enable`,
       headers: {
-        Authorization: 'bearer ' + token
+        Authorization: 'bearer ' + adminToken
       }
     })
 
@@ -98,13 +98,13 @@ export const enableBanner = async (token, bannerId) => {
   }
 }
 
-export const deleteBanner = async (token, bannerId) => {
+export const deleteBanner = async (adminToken, bannerId) => {
   try {
     const res = await axios({
       method: 'delete',
       url: `${baseUrl}/BRL/banner/${bannerId}`,
       headers: {
-        Authorization: 'bearer ' + token
+        Authorization: 'bearer ' + adminToken
       }
     })
 
@@ -114,7 +114,7 @@ export const deleteBanner = async (token, bannerId) => {
   }
 }
 
-export const editBanner = async ({token, bannerControlId, ...prop}) => {
+export const editBanner = async ({adminToken, bannerControlId, ...prop}) => {
   prop.position = '前台首頁'? 1: 2
   prop.end_time = tranTime(prop.end_time)
   prop.start_time = tranTime(prop.start_time)
@@ -124,7 +124,7 @@ export const editBanner = async ({token, bannerControlId, ...prop}) => {
       method: 'put',
       url: `${baseUrl}/BRL/banner/${bannerControlId}`,
       headers: {
-        Authorization: 'bearer ' + token
+        Authorization: 'bearer ' + adminToken
       },
       data: {
         id: bannerControlId,
@@ -138,22 +138,16 @@ export const editBanner = async ({token, bannerControlId, ...prop}) => {
   }
 }
 
-export const createBanner = async ({token, ...prop}) => {
-  prop.position = '前台首頁'? 1: 2
-  prop.end_time = tranTime(prop.end_time)
-  prop.start_time = tranTime(prop.start_time)
-  prop.img = prop.img[0].path
+export const createBanner = async ({adminToken, banner}) => {
+  banner.img = banner.img.path
   try {
     const res = await axios({
       method: 'post',
       url: `${baseUrl}/BRL/banner`,
       headers: {
-        Authorization: 'bearer ' + token
+        Authorization: 'bearer ' + adminToken
       },
-      data: {
-        ...prop,
-        type: 1,
-      }
+      data: {...banner}
     })
 
     return res.data.data
@@ -162,7 +156,7 @@ export const createBanner = async ({token, ...prop}) => {
   }
 }
 
-export const uploadImg = async (params, token) => {
+export const uploadImg = async (params, adminToken) => {
   const form = params.params
 
   try {
@@ -170,7 +164,7 @@ export const uploadImg = async (params, token) => {
       method: 'post',
       url: 'https://image.ball188.cc/api/image/upload',
       headers: {
-        Authorization: 'bearer ' + token
+        Authorization: 'bearer ' + adminToken
       },
       data: form
     })
@@ -181,12 +175,12 @@ export const uploadImg = async (params, token) => {
   }
 }
 
-export const logout = async (token) => {
+export const logout = async (adminToken) => {
   try {
     await axios({
       method: 'post',
       headers: {
-        Authorization: 'bearer ' + token
+        Authorization: 'bearer ' + adminToken
       },
       url: `${baseUrl}/admin/logout`
     })

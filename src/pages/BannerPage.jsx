@@ -13,6 +13,7 @@ import { tranTime } from "../component/common/time"
 const BannerPage = ({
   filePath='imgs/fundding',
 }) => {
+  const adminToken = localStorage.getItem('adminToken')
   const navigate = useNavigate()
   const [ bannerList, setBannerList ] = useState([])
   const [ bannerControlId, setBannerControlId ] = useState(0)
@@ -159,7 +160,6 @@ const BannerPage = ({
 
   // 上傳圖片
   const handleUploadImage = async (options) => {
-    const adminToken = localStorage.getItem('adminToken')
     const form = new FormData();
     form.append("img", options.file);
     form.append("folder", `${filePath}`);
@@ -243,7 +243,6 @@ const BannerPage = ({
   // 點擊啟用/禁用確認
   const handleStatusModalOk = async () => {
     setConfirmLoading(true);
-    const adminToken = localStorage.getItem('adminToken')
 
     try {
       if (bannerControlStatus === 0) {
@@ -279,7 +278,6 @@ const BannerPage = ({
   //點擊刪除確認
   const handleDeleteModalOk = async () => {
     setConfirmLoading(true);
-    const adminToken = localStorage.getItem('adminToken')
 
     try {
       await deleteBanner(adminToken, bannerControlId)
@@ -313,33 +311,35 @@ const BannerPage = ({
       return
     }
 
-    const adminToken = localStorage.getItem('adminToken')
     setConfirmLoading(true);
     try {
       bannerPreList.forEach(async (banner) => {
         await createBanner({adminToken, banner})
       })
-
       handleCancelCreateModal()
       setConfirmLoading(false);
-      setCurrent(1)
 
-      setTimeout(async () => {
-        setSearchLoading(true)
-        let { data, total } = await getBanners(adminToken, current, pageSize, params)
-        setBannerTotal(total)
-        data = data.map(banner => {
-          return ({
-            ...banner,
-            key: banner.id
+      if (current === 1) {
+        setTimeout(async () => {
+          
+          setSearchLoading(true)
+          let { data, total } = await getBanners(adminToken, current, pageSize, params)
+          setBannerTotal(total)
+          data = data.map(banner => {
+            return ({
+              ...banner,
+              key: banner.id
+            })
           })
-        })
-        
-        if (data) {
-          setBannerList(data)
-          setSearchLoading(false)
-        }
-      }, 0)
+          
+          if (data) {
+            setBannerList(data)
+            setSearchLoading(false)
+          }
+        }, 0)
+      } else {
+        setCurrent(1)
+      }
     } catch (error) {
       console.log(error)
     }
@@ -395,7 +395,6 @@ const BannerPage = ({
 
   // 點擊編輯確認
   const handleEditModalOk = async (values) => {
-    const adminToken = localStorage.getItem('adminToken')
     setConfirmLoading(true);
     try {
       const res = await editBanner({adminToken, bannerControlId, ...values})
@@ -428,37 +427,65 @@ const BannerPage = ({
 
   // 點擊搜尋欄位查詢按鈕
   const handleClickSearch = async (params) => {
-    const adminToken = localStorage.getItem('adminToken')
-    setSearchLoading(true)
-    try {
-      let { data, total } = await getBanners(adminToken, 1, pageSize, params)
-      setBannerTotal(total)
-      data = data.map(banner => {
-        return ({
-          ...banner,
-          key: banner.id
+    if (current === 1) {
+      setSearchLoading(true)
+      try {
+        let { data, total } = await getBanners(adminToken, 1, pageSize, params)
+        setBannerTotal(total)
+        data = data.map(banner => {
+          return ({
+            ...banner,
+            key: banner.id
+          })
         })
-      })
-      
-      if (data) {
-        setBannerList(data)
-        setSearchLoading(false)
-        setCurrent(1)
-        setParams(params)
+        
+        if (data) {
+          setBannerList(data)
+          setSearchLoading(false)
+          setParams(params)
+        }
+      } catch (error) {
+        console.log(error)
       }
-    } catch (error) {
-      console.log(error)
+    } else {
+      setParams(params)
+      setCurrent(1)
     }
   }
 
   // 點擊搜尋欄位重置按鈕
   const handleClickReset = async () => {
-    const adminToken = localStorage.getItem('adminToken')
-    setSearchLoading(true)
     setParams({})
+    if (current === 1) {
+      setSearchLoading(true)
+      
+      try {
+        let { data, total } = await getBanners(adminToken, 1, pageSize)
+        setBannerTotal(total)
+        data = data.map(banner => {
+          return ({
+            ...banner,
+            key: banner.id
+          })
+        })
+        
+        if (data) {
+          setBannerList(data)
+          setSearchLoading(false)
+        }
+      } catch (error) {
+        console.log(error)
+      }
+    } else {
+      setCurrent(1)
+    }
+  }
 
+  // 點擊刷新
+  const handleReload = async () => {
+    setSearchLoading(true)
     try {
-      let { data, total } = await getBanners(adminToken, 1, pageSize)
+      let { data, total } = await getBanners(adminToken, current, pageSize, params)
       setBannerTotal(total)
       data = data.map(banner => {
         return ({
@@ -470,19 +497,15 @@ const BannerPage = ({
       if (data) {
         setBannerList(data)
         setSearchLoading(false)
-        setCurrent(1)
       }
     } catch (error) {
       console.log(error)
     }
   }
-
+  
   // 切換頁面
   const handleChangePage = async (page, size) => {
-    const adminToken = localStorage.getItem('adminToken')
     setSearchLoading(true)
-    setCurrent(page)
-    setPageSize(size)
     try {
       let { data, total } = await getBanners(adminToken, page, size, params)
       setBannerTotal(total)
@@ -496,6 +519,8 @@ const BannerPage = ({
       if (data) {
         setBannerList(data)
         setSearchLoading(false)
+        setCurrent(page)
+        setPageSize(size)
       }
     } catch (error) {
       console.log(error)
@@ -531,14 +556,14 @@ const BannerPage = ({
       }
     }
     getBannersAsync()
-  },[navigate, current, pageSize])
+  },[navigate])
 
   return (
     <>
       <div className="mainContainer">
         <LeftContainer banner={bannerActive}></LeftContainer>
 
-        <BannerContainer bannerList={bannerList} showStatusModal={handleShowStatusModal} showDeleteModal={handleShowDeleteModal} showCreateModal={handleShowCreateModal} showEditModal={handleShowEditModal} bannerCount={bannerList.length} onClickSearch={handleClickSearch} onClickReset={handleClickReset} confirmLoading={confirmLoading} searchLoading={searchLoading} current={current} onChangePage={handleChangePage} bannerTotal={bannerTotal} pageSize={pageSize}></BannerContainer>
+        <BannerContainer bannerList={bannerList} showStatusModal={handleShowStatusModal} showDeleteModal={handleShowDeleteModal} showCreateModal={handleShowCreateModal} showEditModal={handleShowEditModal} bannerCount={bannerList.length} onClickSearch={handleClickSearch} onClickReset={handleClickReset} confirmLoading={confirmLoading} searchLoading={searchLoading} current={current} onChangePage={handleChangePage} bannerTotal={bannerTotal} pageSize={pageSize} onClickReload={handleReload}></BannerContainer>
         
         {/* Modal */}
         <>  
@@ -747,7 +772,8 @@ const BannerPage = ({
                     columns={columns}
                     dataSource={bannerPreList}
                     search={false}
-                    sticky={true}
+                    options={false}
+                    // sticky={true}
                     scroll={{
                       x: 1200,
                     }}

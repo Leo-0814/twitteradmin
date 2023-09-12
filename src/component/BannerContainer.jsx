@@ -2,7 +2,7 @@ import { PlusOutlined } from "@ant-design/icons";
 import { ProFormDateRangePicker, ProFormSelect, ProFormText, ProTable, QueryFilter } from "@ant-design/pro-components";
 import { Badge, Button, Space } from "antd"
 
-const BannerContainer = ({ bannerList, showStatusModal, showDeleteModal,showCreateModal, showEditModal, bannerCount, onClickSearch, onClickReset, searchLoading, current, onChangePage, bannerTotal, pageSize }) => {
+const BannerContainer = ({ bannerList, showStatusModal, showDeleteModal,showCreateModal, showEditModal, onClickSearch, onClickReset, searchLoading, current, onChangePage, bannerTotal, pageSize, onClickReload }) => {
   const columns = [
   {
     title: '排序',
@@ -149,7 +149,6 @@ const BannerContainer = ({ bannerList, showStatusModal, showDeleteModal,showCrea
           columns={columns}
           dataSource={bannerList}
           request={ (params, sort, filter) => {
-            console.log(params, sort, filter);
             return {
               data: bannerList,
               success: true,
@@ -159,6 +158,9 @@ const BannerContainer = ({ bannerList, showStatusModal, showDeleteModal,showCrea
           defaultCollapsed= {false}
           search={false}
           sticky={true}
+          options= {{
+            reload: () => onClickReload?.()
+          }}
           toolBarRender={() => [
             <Button
               key="button"

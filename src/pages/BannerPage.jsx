@@ -556,7 +556,7 @@ const BannerPage = ({
       }
     }
     getBannersAsync()
-  },[navigate])
+  },[navigate, current, pageSize])
 
   return (
     <>
